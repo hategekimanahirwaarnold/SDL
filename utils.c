@@ -198,7 +198,7 @@ bool loadMedia_Geometry()
     return success;
 }
 
-void free_texture(lTexture* texture)
+void free_texture(lTexture_s* texture)
 {
     if (texture->mTexture != NULL)
     {
@@ -208,3 +208,5 @@ void free_texture(lTexture* texture)
         texture->mHeight = 0;
     }
 }
+
+

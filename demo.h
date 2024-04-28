@@ -31,32 +31,40 @@ typedef struct SDL_Instance
     SDL_Surface* gStretchedSurface;
 } SDL_Instance;
 
-typedef struct lTexture
-{
-    bool (*loadFromFile)(char *);
-    void (*render)(int , int );
-    int (*getWidth)();
-    int (*getHeight)();
-    SDL_Texture* mTexture;
-    int mWidth;
-    int mHeight;
-} lTexture;
+// Forward declaration of lTexture_s
+typedef struct lTexture lTexture_s;
 
 typedef struct CL_Instance
 {
     SDL_Window* gWindow;
     SDL_Renderer* gRenderer;
-    lTexture gFooTexture;
-    lTexture gBackgroundTexture;
+    lTexture_s* gFooTexture;         // Pointer to lTexture_s
+    lTexture_s* gBackgroundTexture;  // Pointer to lTexture_s
 } CL_Instance;
+
+// Definition of lTexture_s
+struct lTexture
+{
+    bool (*loadFromFile)(lTexture_s*, CL_Instance*, char *);
+    void (*render)(lTexture_s*, CL_Instance* , int, int);
+    int (*getWidth)(lTexture_s*);
+    int (*getHeight)(lTexture_s*);
+    SDL_Texture* mTexture;
+    int mWidth;
+    int mHeight;
+};
+
+
 
 int init_instance(SDL_Instance *);
 void draw_stuff(SDL_Instance* );
 int poll_events();
 bool loadMedia(SDL_Instance *);
 bool loadMedia_Texture(SDL_Instance *);
+bool loadMedia_Color(CL_Instance *);
 bool loadMedia_Geometry();
 void close(SDL_Instance *);
+void close_color(CL_Instance *);
 SDL_Surface* loadSurface(char* , SDL_Instance* );
 SDL_Texture* loadTexture(char *path, SDL_Instance* );
 
