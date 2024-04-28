@@ -38,15 +38,18 @@ typedef struct CL_Instance
 {
     SDL_Window* gWindow;
     SDL_Renderer* gRenderer;
-    lTexture_s* gFooTexture;         // Pointer to lTexture_s
+    lTexture_s* gFooTexture;
     lTexture_s* gBackgroundTexture;  // Pointer to lTexture_s
+    lTexture_s* gSpriteSheetTexture;
+    SDL_Rect gSpriteClips[ 4 ];
 } CL_Instance;
 
 // Definition of lTexture_s
 struct lTexture
 {
     bool (*loadFromFile)(lTexture_s*, CL_Instance*, char *);
-    void (*render)(lTexture_s*, CL_Instance* , int, int);
+    // void (*render)(lTexture_s*, CL_Instance* , int, int ); // this one is for color
+    void (*render)(lTexture_s*, CL_Instance* , int, int, SDL_Rect* );
     int (*getWidth)(lTexture_s*);
     int (*getHeight)(lTexture_s*);
     SDL_Texture* mTexture;
@@ -62,9 +65,11 @@ int poll_events();
 bool loadMedia(SDL_Instance *);
 bool loadMedia_Texture(SDL_Instance *);
 bool loadMedia_Color(CL_Instance *);
+bool loadMedia_Sprite(CL_Instance *);
 bool loadMedia_Geometry();
 void close(SDL_Instance *);
 void close_color(CL_Instance *);
+void close_sprite(CL_Instance *);
 SDL_Surface* loadSurface(char* , SDL_Instance* );
 SDL_Texture* loadTexture(char *path, SDL_Instance* );
 
