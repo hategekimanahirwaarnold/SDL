@@ -1,47 +1,46 @@
 #include "demo.h"
 
-bool loadMedia_Sprite(CL_Instance* instance)
+bool loadMedia(CL_Instance* instance)
 {
-    //load success flag
     bool success = true;
 
-    if (!instance->gSpriteSheetTexture->loadFromFile(instance->gSpriteSheetTexture, instance, "img/dots.png"))
+    //load front alpha texture
+    if (!instance->gSpriteSheetTexture->loadFromFile(instance->gSpriteSheetTexture, instance, "img/foo2.png"))
     {
-        printf("Failed to load sprite texture image!");
+        printf("Failed to load texture image!\n");
         success = false;
-    }
-    else
+    } else
     {
-        //top left sprite
+        //sprite clips
         instance->gSpriteClips[ 0 ].x = 0;
         instance->gSpriteClips[ 0 ].y = 0;
-        instance->gSpriteClips[ 0 ].w = 100;
-        instance->gSpriteClips[ 0 ].h = 100;
+        instance->gSpriteClips[ 0 ].w = 64;
+        instance->gSpriteClips[ 0 ].h = 205;
 
-        //top right sprite
-        instance->gSpriteClips[ 1 ].x = 100;
+        instance->gSpriteClips[ 1 ].x = 64;
         instance->gSpriteClips[ 1 ].y = 0;
-        instance->gSpriteClips[ 1 ].w = 100;
-        instance->gSpriteClips[ 1 ].h = 100;
-        //bottom left sprite 
-        instance->gSpriteClips[ 2 ].x = 0;
-        instance->gSpriteClips[ 2 ].y = 100;
-        instance->gSpriteClips[ 2 ].w = 100;
-        instance->gSpriteClips[ 2 ].h = 100;
-        //bottom right surface
-        instance->gSpriteClips[ 3 ].x = 100;
-        instance->gSpriteClips[ 3 ].y = 100;
-        instance->gSpriteClips[ 3 ].w = 100;
-        instance->gSpriteClips[ 3 ].h = 100;
+        instance->gSpriteClips[ 1 ].w = 64;
+        instance->gSpriteClips[ 1 ].h = 205;
 
+        instance->gSpriteClips[ 2 ].x = 128;
+        instance->gSpriteClips[ 2 ].y = 0;
+        instance->gSpriteClips[ 2 ].w = 64;
+        instance->gSpriteClips[ 2 ].h = 205;
+    
+        instance->gSpriteClips[ 3 ].x = 192;
+        instance->gSpriteClips[ 3 ].y = 0;
+        instance->gSpriteClips[ 3 ].w = 64;
+        instance->gSpriteClips[ 3 ].h = 205;
     }
-   return success;
+
+    return success;
 }
 
 bool loadFromFile(lTexture_s *self, CL_Instance* instance, char* path)
 {
     SDL_Texture* newTexture = NULL;
     SDL_Surface* loadedSurface = IMG_Load(path);
+
     if (loadedSurface == NULL)
     {
         printf("Unable to load image %s! SDL_image Error: %s\n", path, IMG_GetError());
@@ -60,14 +59,16 @@ bool loadFromFile(lTexture_s *self, CL_Instance* instance, char* path)
         }
         //Get rid of old loaded surface
         SDL_FreeSurface(loadedSurface);
-        self->mTexture = newTexture;
     }
+    self->mTexture = newTexture;
+
     return self->mTexture != NULL;
 }
 
 void render (lTexture_s *self, CL_Instance* instance, int x, int y, SDL_Rect* clip)
 {
     SDL_Rect renderQuad = { x, y, self->mWidth, self->mHeight };
+
     //Set clip rendering dimensions
     if ( clip != NULL )
     {
@@ -142,26 +143,46 @@ bool init(CL_Instance* instance)
 	return success;
 }
 
+void setBlendMode(SDL_Texture* mTexture,SDL_BlendMode blending)
+{
+    //Set blending function
+    SDL_SetTextureBlendMode(mTexture, blending);
+}
+
+void setAlpha(SDL_Texture* mTexture, Uint8 alpha)
+{
+    //Modulated texture alpha
+    SDL_SetTextureAlphaMod(mTexture, alpha);
+}
+
 int main()
 {
     CL_Instance instance;
     lTexture_s texture;
     instance.gSpriteSheetTexture = &texture;
-    instance.gSpriteSheetTexture->render = render;
-    instance.gSpriteSheetTexture->loadFromFile = loadFromFile;
+    instance.gSpriteSheetTexture->loadFromFile = &loadFromFile;
+    instance.gSpriteSheetTexture->render = &render;
+    instance.gSpriteSheetTexture->setAlpha = &setAlpha;
+    instance.gSpriteSheetTexture->setBlendMode = &setBlendMode;
+
     bool quit = false;
+    Uint8 a = 255;
+    int frame = 0;
+    int timer = 40;
+
     if ( !init(&instance) )
     {
         printf("Failed to initialize!\n");
     } else
     {
         // load media
-        if (!loadMedia_Sprite(&instance))
+        if (!loadMedia(&instance))
         {
             printf("Failed to load media!\n");
         } else
         {
             SDL_Event e;
+
             while(!quit)
             {
                 while(SDL_PollEvent( &e ) != 0)
@@ -171,20 +192,20 @@ int main()
                         quit = true;
                     }
                 }
+
                 // clear screen
                 SDL_SetRenderDrawColor(instance.gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
                 SDL_RenderClear(instance.gRenderer);
-                //Render top left sprite
-                instance.gSpriteSheetTexture->render(instance.gSpriteSheetTexture, &instance , 0, 0, &instance.gSpriteClips[ 0 ]);
-                //render top right to the screen
-                instance.gSpriteSheetTexture->render(instance.gSpriteSheetTexture, &instance, SCREEN_WIDTH - instance.gSpriteClips[ 1 ].w, 0, &instance.gSpriteClips[ 1 ]);
-                //render bottom left sprite
-                instance.gSpriteSheetTexture->render(instance.gSpriteSheetTexture, &instance, 0, SCREEN_HEIGHT - instance.gSpriteClips[ 2 ].h, &instance.gSpriteClips[ 2 ] );
-                //render bottom right sprite
-                instance.gSpriteSheetTexture->render(instance.gSpriteSheetTexture, &instance, SCREEN_WIDTH - instance.gSpriteClips[ 3 ].w, SCREEN_HEIGHT - instance.gSpriteClips[ 3 ].h, &instance.gSpriteClips[ 3 ] );
- 
-                // update screen
+
+                SDL_Rect* currentClip = &instance.gSpriteClips[ frame / timer ];
+                instance.gSpriteSheetTexture->render(instance.gSpriteSheetTexture, &instance, ( SCREEN_WIDTH - currentClip->w ) / 2, ( SCREEN_HEIGHT - currentClip->h ) / 2, currentClip );
+                //Update screen
                 SDL_RenderPresent(instance.gRenderer);
+                //next frame
+                ++frame;
+                // cycle animation
+                if ( frame / timer >= WALKING_ANIMATION_FRAMES )
+                    frame = 0;
             }
         }
     }

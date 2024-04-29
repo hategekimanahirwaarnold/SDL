@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
+#define WALKING_ANIMATION_FRAMES 4
 
 enum KeyPressSurfaces
 {
