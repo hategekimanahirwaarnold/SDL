@@ -38,6 +38,7 @@ typedef struct CL_Instance
 {
     SDL_Window* gWindow;
     SDL_Renderer* gRenderer;
+    lTexture_s* gArrowTexture;
     lTexture_s* gFooTexture;
     lTexture_s* gBackgroundTexture;  // Pointer to lTexture_s
     lTexture_s* gSpriteSheetTexture;
@@ -50,7 +51,9 @@ struct lTexture
 {
     bool (*loadFromFile)(lTexture_s*, CL_Instance*, char *);
     // void (*render)(lTexture_s*, CL_Instance* , int, int ); // this one is for color
-    void (*render)(lTexture_s*, CL_Instance* , int, int, SDL_Rect* ); // this one is for sprite
+    // void (*render)(lTexture_s*, CL_Instance* , int, int, SDL_Rect* ); // this one is for sprite
+    void (*render)(lTexture_s*, CL_Instance* , int, int, SDL_Rect* , double , SDL_Point* , SDL_RendererFlip );
+
     int (*getWidth)(lTexture_s*);
     int (*getHeight)(lTexture_s*);
     void (*setColor)(SDL_Texture* ,Uint8, Uint8, Uint8);
