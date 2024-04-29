@@ -5,7 +5,6 @@
 #include <SDL2/SDL_image.h>
 #include <stdio.h>
 #include <stdbool.h>
-
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
 
@@ -41,6 +40,7 @@ typedef struct CL_Instance
     lTexture_s* gFooTexture;
     lTexture_s* gBackgroundTexture;  // Pointer to lTexture_s
     lTexture_s* gSpriteSheetTexture;
+    lTexture_s* gModulatedTexture;
     SDL_Rect gSpriteClips[ 4 ];
 } CL_Instance;
 
@@ -49,15 +49,14 @@ struct lTexture
 {
     bool (*loadFromFile)(lTexture_s*, CL_Instance*, char *);
     // void (*render)(lTexture_s*, CL_Instance* , int, int ); // this one is for color
-    void (*render)(lTexture_s*, CL_Instance* , int, int, SDL_Rect* );
+    void (*render)(lTexture_s*, CL_Instance* , int, int, SDL_Rect* ); // this one is for sprite
     int (*getWidth)(lTexture_s*);
     int (*getHeight)(lTexture_s*);
+    void (*setColor)(SDL_Texture* ,Uint8, Uint8, Uint8);
     SDL_Texture* mTexture;
     int mWidth;
     int mHeight;
 };
-
-
 
 int init_instance(SDL_Instance *);
 void draw_stuff(SDL_Instance* );
@@ -66,6 +65,7 @@ bool loadMedia(SDL_Instance *);
 bool loadMedia_Texture(SDL_Instance *);
 bool loadMedia_Color(CL_Instance *);
 bool loadMedia_Sprite(CL_Instance *);
+bool loadMedia_Modulation(CL_Instance *);
 bool loadMedia_Geometry();
 void close(SDL_Instance *);
 void close_color(CL_Instance *);
