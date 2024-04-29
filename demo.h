@@ -53,6 +53,8 @@ struct lTexture
     int (*getWidth)(lTexture_s*);
     int (*getHeight)(lTexture_s*);
     void (*setColor)(SDL_Texture* ,Uint8, Uint8, Uint8);
+    void (*setBlendMode)(SDL_Texture* , SDL_BlendMode);
+    void (*setAlpha)(SDL_Texture*, Uint8);
     SDL_Texture* mTexture;
     int mWidth;
     int mHeight;
@@ -61,7 +63,8 @@ struct lTexture
 int init_instance(SDL_Instance *);
 void draw_stuff(SDL_Instance* );
 int poll_events();
-bool loadMedia(SDL_Instance *);
+// bool loadMedia(SDL_Instance *);
+bool loadMedia(CL_Instance *);
 bool loadMedia_Texture(SDL_Instance *);
 bool loadMedia_Color(CL_Instance *);
 bool loadMedia_Sprite(CL_Instance *);

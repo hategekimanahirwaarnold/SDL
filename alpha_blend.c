@@ -1,13 +1,23 @@
 #include "demo.h"
 
-bool loadMedia_Modulation(CL_Instance* instance)
+bool loadMedia(CL_Instance* instance)
 {
-    //load success flag
     bool success = true;
 
-    if (!instance->gModulatedTexture->loadFromFile(instance->gModulatedTexture, instance, "img/colors.png"))
+    //load front alpha texture
+    if (!instance->gModulatedTexture->loadFromFile(instance->gModulatedTexture, instance, "img/fadeout.png"))
     {
         printf("Failed to load texture image!");
+        success = false;
+    } else
+    {
+        //Set standard alpha blending
+        instance->gModulatedTexture->setBlendMode(instance->gModulatedTexture->mTexture, SDL_BLENDMODE_BLEND);
+    }
+    //Load background texture
+    if (!instance->gBackgroundTexture->loadFromFile(instance->gBackgroundTexture, instance, "img/fadein.png"))
+    {
+        printf("Failed to load background texture!\n");
         success = false;
     }
    return success;
@@ -36,8 +46,8 @@ bool loadFromFile(lTexture_s *self, CL_Instance* instance, char* path)
         }
         //Get rid of old loaded surface
         SDL_FreeSurface(loadedSurface);
-        self->mTexture = newTexture;
     }
+    self->mTexture = newTexture;
     return self->mTexture != NULL;
 }
 
@@ -118,23 +128,37 @@ bool init(CL_Instance* instance)
 	return success;
 }
 
-void setColor(SDL_Texture *mTexture, Uint8 red, Uint8 green, Uint8 blue)
+void setBlendMode(SDL_Texture* mTexture,SDL_BlendMode blending)
 {
-    SDL_SetTextureColorMod(mTexture, red, green, blue);
+    //Set blending function
+    SDL_SetTextureBlendMode(mTexture, blending);
+}
+
+void setAlpha(SDL_Texture* mTexture, Uint8 alpha)
+{
+    //Modulated texture alpha
+    SDL_SetTextureAlphaMod(mTexture, alpha);
 }
 
 int main()
 {
     CL_Instance instance;
     lTexture_s texture;
+    lTexture_s texture2;
     instance.gModulatedTexture = &texture;
-    instance.gModulatedTexture->setColor = &setColor;
     instance.gModulatedTexture->loadFromFile = &loadFromFile;
     instance.gModulatedTexture->render = &render;
+    instance.gModulatedTexture->setAlpha = &setAlpha;
+    instance.gModulatedTexture->setBlendMode = &setBlendMode;
+
+    instance.gBackgroundTexture = &texture2;
+    instance.gBackgroundTexture->loadFromFile = &loadFromFile;
+    instance.gBackgroundTexture->render = &render;
+    instance.gBackgroundTexture->setAlpha = &setAlpha;
+    instance.gBackgroundTexture->setBlendMode = &setBlendMode;
+
     bool quit = false;
-    Uint8 r = 255;
-    Uint8 g = 255;
-    Uint8 b = 255;
+    Uint8 a = 255;
 
     if ( !init(&instance) )
     {
@@ -142,7 +166,7 @@ int main()
     } else
     {
         // load media
-        if (!loadMedia_Modulation(&instance))
+        if (!loadMedia(&instance))
         {
             printf("Failed to load media!\n");
         } else
@@ -159,29 +183,13 @@ int main()
                     {
                         switch(e.key.keysym.sym)
                         {
-                            //increase red
-                            case SDLK_q:
-                            r += 32;
-                            break;
-                            //increase green
+                            //increase alpha on w
                             case SDLK_w:
-                            g += 32;
+                            a = a + 32 > 255 ? 255 : a + 32;
                             break;
-                            //increase blue
-                            case SDLK_e:
-                            b += 32;
-                            break;
-                            //Decrease red
-                            case SDLK_a:
-                            r -= 32;
-                            break;
-                            //Decrease green
+                            //Increment otherwise
                             case SDLK_s:
-                            g -= 32;
-                            break;
-                            //Decrease blue
-                            case SDLK_d:
-                            b -= 32;
+                            a = a - 32 < 0 ? 0 : a - 32;
                             break;
                         }
                     }
@@ -189,11 +197,15 @@ int main()
                 // clear screen
                 SDL_SetRenderDrawColor(instance.gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
                 SDL_RenderClear(instance.gRenderer);
-                // modulate render texture
-                instance.gModulatedTexture->setColor(instance.gModulatedTexture->mTexture, r, g, b);
+
+                // render background texture
+                instance.gBackgroundTexture->render(instance.gBackgroundTexture, &instance, 0, 0, NULL);
+ 
+                // render modulated texture
+                instance.gModulatedTexture->setAlpha(instance.gModulatedTexture->mTexture, a);
                 instance.gModulatedTexture->render(instance.gModulatedTexture, &instance, 0 , 0, NULL);
 
-                // update screen
+               // update screen
                 SDL_RenderPresent(instance.gRenderer);
             }
         }
