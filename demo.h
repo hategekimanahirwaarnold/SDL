@@ -3,8 +3,11 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <math.h>
+
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
 #define WALKING_ANIMATION_FRAMES 4
@@ -38,11 +41,13 @@ typedef struct CL_Instance
 {
     SDL_Window* gWindow;
     SDL_Renderer* gRenderer;
+    lTexture_s* gTextTexture;
     lTexture_s* gArrowTexture;
     lTexture_s* gFooTexture;
     lTexture_s* gBackgroundTexture;  // Pointer to lTexture_s
     lTexture_s* gSpriteSheetTexture;
     lTexture_s* gModulatedTexture;
+    TTF_Font* gFont;
     SDL_Rect gSpriteClips[ 4 ];
 } CL_Instance;
 
@@ -53,7 +58,7 @@ struct lTexture
     // void (*render)(lTexture_s*, CL_Instance* , int, int ); // this one is for color
     // void (*render)(lTexture_s*, CL_Instance* , int, int, SDL_Rect* ); // this one is for sprite
     void (*render)(lTexture_s*, CL_Instance* , int, int, SDL_Rect* , double , SDL_Point* , SDL_RendererFlip );
-
+    bool (*loadFromRenderedText)(lTexture_s* , CL_Instance*, char*, SDL_Color);
     int (*getWidth)(lTexture_s*);
     int (*getHeight)(lTexture_s*);
     void (*setColor)(SDL_Texture* ,Uint8, Uint8, Uint8);
