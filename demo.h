@@ -11,6 +11,27 @@
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
 #define WALKING_ANIMATION_FRAMES 4
+#define BUTTON_WIDTH 300
+#define BUTTON_HEIGHT 200
+#define TOTAL_BUTTONS 4
+
+enum LButtonSprite
+{
+    BUTTON_SPRITE_MOUSE_OUT = 0,
+    BUTTON_SPRITE_MOUSE_OVER_MOTION = 1,
+    BUTTON_SPRITE_MOUSE_DOWN = 2,
+    BUTTON_SPRITE_MOUSE_UP = 3,
+    BUTTON_SPRITE_TOTAL = 4,
+};
+
+typedef struct LButton
+{
+    void (*setPosition)(int x, int y);
+    void (*handleEvent)(int x, int y);
+    void (*render)();
+    SDL_Point mPosition;
+    int mCurrentSprite;
+} lButton;
 
 enum KeyPressSurfaces
 {
@@ -46,9 +67,11 @@ typedef struct CL_Instance
     lTexture_s* gFooTexture;
     lTexture_s* gBackgroundTexture;  // Pointer to lTexture_s
     lTexture_s* gSpriteSheetTexture;
+    lTexture_s* gButtonSpriteSheetTexture;
     lTexture_s* gModulatedTexture;
     TTF_Font* gFont;
     SDL_Rect gSpriteClips[ 4 ];
+    lButton gButtons[ TOTAL_BUTTONS ];
 } CL_Instance;
 
 // Definition of lTexture_s
@@ -57,7 +80,8 @@ struct lTexture
     bool (*loadFromFile)(lTexture_s*, CL_Instance*, char *);
     // void (*render)(lTexture_s*, CL_Instance* , int, int ); // this one is for color
     // void (*render)(lTexture_s*, CL_Instance* , int, int, SDL_Rect* ); // this one is for sprite
-    void (*render)(lTexture_s*, CL_Instance* , int, int, SDL_Rect* , double , SDL_Point* , SDL_RendererFlip );
+    // void (*render)(lTexture_s*, CL_Instance* , int, int, SDL_Rect* , double , SDL_Point* , SDL_RendererFlip );
+    void (*render)(lTexture_s*, CL_Instance* , int, int, SDL_RendererFlip ); // this one is for handling button events
     bool (*loadFromRenderedText)(lTexture_s* , CL_Instance*, char*, SDL_Color);
     int (*getWidth)(lTexture_s*);
     int (*getHeight)(lTexture_s*);

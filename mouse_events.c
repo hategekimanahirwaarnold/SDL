@@ -1,26 +1,61 @@
 #include "demo.h"
 
-bool loadMedia(CL_Instance* instance)
+/** A condition for making sure we load SDL_ttf when we need it*/
+#if defined(SDL_TTF_MAJOR_VERSION)
+bool loadFromRenderedText(lTexture_s* self, CL_Instance* instance, char* textureText, SDL_Color textColor)
 {
-    bool success = true;
-
-    instance->gFont = TTF_OpenFont("img/lazy.ttf", 28);
-    if (instance->gFont == NULL)
+    SDL_Surface* textSurface = TTF_RenderText_Solid(instance->gFont, textureText, textColor);
+    if (textSurface == NULL)
     {
-        printf("Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError() );
-        success = false;
+        printf("Unable to render text sufrace! SDL_ttf Error: %s", TTF_GetError());
     } else
     {
-        //Render text
-        SDL_Color textColor = {0, 0, 0, 0};
-        if (!instance->gButtonSpriteSheetTexture->loadFromRenderedText(instance->gButtonSpriteSheetTexture, instance, "Hirwa is the best programmer up to death!", textColor) )
+        self->mTexture = SDL_CreateTextureFromSurface(instance->gRenderer, textSurface);
+        if (self->mTexture == NULL)
         {
-            printf("Failed to render text texture!\n");
-            success = false;
+            printf("Unable to create texture from rendered text! SDL Error: %s\n", SDL_GetError() );
+        } else
+        {
+            self->mWidth = textSurface->w;
+            self->mHeight = textSurface->h;
         }
+        //remove old surface
+        SDL_FreeSurface(textSurface);
     }
+    return self->mTexture != NULL;
+}
 
-   return success;
+#endif /*if defined (SDL_TTF_MAJOR_VERSION)*/
+
+bool loadMedia(CL_Instance* instance)
+{
+	bool success = true;
+
+	//Load sprites
+	if( !instance->gButtonSpriteSheetTexture->loadFromFile(instance->gButtonSpriteSheetTexture, instance, "img/button.png" ) )
+	{
+		printf( "Failed to load button sprite texture!\n" );
+		success = false;
+	}
+	else
+	{
+		//Set sprites
+		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+		{
+			instance->gSpriteClips[ i ].x = 0;
+			instance->gSpriteClips[ i ].y = i * 200;
+			instance->gSpriteClips[ i ].w = BUTTON_WIDTH;
+			instance->gSpriteClips[ i ].h = BUTTON_HEIGHT;
+		}
+
+		//Set buttons in corners
+		gButtons[ 0 ].setPosition( 0, 0 );
+		gButtons[ 1 ].setPosition( SCREEN_WIDTH - BUTTON_WIDTH, 0 );
+		gButtons[ 2 ].setPosition( 0, SCREEN_HEIGHT - BUTTON_HEIGHT );
+		gButtons[ 3 ].setPosition( SCREEN_WIDTH - BUTTON_WIDTH, SCREEN_HEIGHT - BUTTON_HEIGHT );
+	}
+
+	return success;
 }
 
 bool loadFromFile(lTexture_s *self, CL_Instance* instance, char* path)
@@ -64,6 +99,10 @@ void render (lTexture_s *self, CL_Instance* instance, int x, int y, SDL_Rect* cl
     }
 
     SDL_RenderCopyEx( instance->gRenderer, self->mTexture, clip, &renderQuad, angle, center, flip);
+}
+void renderButton(lButton* self, CL_Instance* instance)
+{
+    instance->gButtonSpriteSheetTexture->render(instance->gSpriteSheetTexture, instance, self->mPosition.x, self->mPosition.y, &instance->gSpriteClips[ self->mCurrentSprite ]);
 }
 
 void close_sprite(CL_Instance* instance)
@@ -151,33 +190,64 @@ void setAlpha(SDL_Texture* mTexture, Uint8 alpha)
     SDL_SetTextureAlphaMod(mTexture, alpha);
 }
 
-bool loadFromRenderedText(lTexture_s* self, CL_Instance* instance, char* textureText, SDL_Color textColor)
+void setPosition(lButton *button , int x, int y)
 {
-    SDL_Surface* textSurface = TTF_RenderText_Solid(instance->gFont, textureText, textColor);
-    if (textSurface == NULL)
+    button->mPosition.x = x;
+    button->mPosition.y = y;
+}
+
+void handleEvent(SDL_Event* e, lButton* button)
+{
+    if (e->type == SDL_MOUSEMOTION || e->type == SDL_MOUSEBUTTONDOWN || e->type == SDL_MOUSEBUTTONUP)
     {
-        printf("Unable to render text sufrace! SDL_ttf Error: %s", TTF_GetError());
-    } else
-    {
-        self->mTexture = SDL_CreateTextureFromSurface(instance->gRenderer, textSurface);
-        if (self->mTexture == NULL)
+        int x, y;
+        SDL_GetMouseState(&x,&y);
+        bool inside = true;
+        //mouse is left of the button
+        if (x < button->mPosition.x)
+            inside = false;
+        //mouse is right of the button
+        else if (x > button->mPosition.x + BUTTON_WIDTH)
+            inside = false;
+        //Mouse above the button
+        else if (y < button->mPosition.y)
+            inside = false;
+        //Mouse below the button
+        else if (y > button->mPosition.y + BUTTON_HEIGHT )
+            inside = false;
+
+        //Mouse is outside button
+        if (!inside)
+            button->mCurrentSprite = BUTTON_SPRITE_MOUSE_OUT;
+        //Mouse is inside button
+        else
         {
-            printf("Unable to create texture from rendered text! SDL Error: %s\n", SDL_GetError() );
-        } else
-        {
-            self->mWidth = textSurface->w;
-            self->mHeight = textSurface->h;
+            //set mouse over sprite
+            switch(e->type)
+            {
+                case SDL_MOUSEMOTION:
+                button->mCurrentSprite =  BUTTON_SPRITE_MOUSE_OVER_MOTION;
+                break;
+                case SDL_MOUSEBUTTONDOWN:
+                button->mCurrentSprite = BUTTON_SPRITE_MOUSE_DOWN;
+                break;
+                case SDL_MOUSEBUTTONUP:
+                button->mCurrentSprite = BUTTON_SPRITE_MOUSE_UP;
+                break;
+            }
         }
-        //remove old surface
-        SDL_FreeSurface(textSurface);
+        
     }
-    return self->mTexture != NULL;
+
 }
 
 int main()
 {
     CL_Instance instance;
     lTexture_s texture;
+    lButton button;
+    button.setPosition = &setPosition;
+    button.mCurrentSprite = BUTTON_SPRITE_MOUSE_OUT;
     instance.gButtonSpriteSheetTexture = &texture;
     instance.gButtonSpriteSheetTexture->loadFromFile = &loadFromFile;
     instance.gButtonSpriteSheetTexture->render = &render;
@@ -185,6 +255,7 @@ int main()
     instance.gButtonSpriteSheetTexture->setBlendMode = &setBlendMode;
     instance.gButtonSpriteSheetTexture->loadFromRenderedText = &loadFromRenderedText;
 
+    lButton gButtons[ TOTAL_BUTTONS ];
 
     SDL_RendererFlip flipType = SDL_FLIP_NONE;
 
@@ -211,17 +282,24 @@ int main()
                         quit = true;
                     }     
                 }
-
-                // clear screen
-                SDL_SetRenderDrawColor(instance.gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
-                SDL_RenderClear(instance.gRenderer);
-
-                // render arrow texture
-                instance.gButtonSpriteSheetTexture->render(instance.gButtonSpriteSheetTexture, &instance, (SCREEN_WIDTH - instance.gButtonSpriteSheetTexture->mWidth) / 2, (SCREEN_HEIGHT - instance.gButtonSpriteSheetTexture->mHeight) / 2, flipType);
-
-                //Update screen
-                SDL_RenderPresent(instance.gRenderer);
+                // Handle button events
+                for (int i = 0; i < TOTAL_BUTTONS; ++i)
+                {
+                    gButtons[ i ].handleEvent( &e, &gButtons[ i ] );
+                }
             }
+            //Clear screen
+            SDL_SetRenderDrawColor( instance.gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
+            SDL_RenderClear( instance.gRenderer );
+
+            //Render buttons
+            for( int i = 0; i < TOTAL_BUTTONS; ++i )
+            {
+                gButtons[ i ].render();
+            }
+
+            //Update screen
+            SDL_RenderPresent( instance.gRenderer );
         }
     }
     close_sprite(&instance);
