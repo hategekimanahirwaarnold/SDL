@@ -76,10 +76,14 @@ struct CL_Instance
     lTexture_s* gDownTexture;
     lTexture_s* gLeftTexture;
     lTexture_s* gRightTexture;
+    lTexture_s* gSplashTexture;
     // TTF_Font* gFont;
     SDL_Rect gSpriteClips[ 4 ];
     lButton gButtons[ TOTAL_BUTTONS ];
-    SDL_Joystick* gGameController;
+    // SDL_Joystick* gGameController;
+    SDL_GameController* gGameController;
+    SDL_Joystick* gJoystick;
+    SDL_Haptic* gJoyHaptic;
 };
 
 
