@@ -49,10 +49,10 @@ bool loadMedia(CL_Instance* instance)
 		}
 
 		//Set buttons in corners
-		gButtons[ 0 ].setPosition( 0, 0 );
-		gButtons[ 1 ].setPosition( SCREEN_WIDTH - BUTTON_WIDTH, 0 );
-		gButtons[ 2 ].setPosition( 0, SCREEN_HEIGHT - BUTTON_HEIGHT );
-		gButtons[ 3 ].setPosition( SCREEN_WIDTH - BUTTON_WIDTH, SCREEN_HEIGHT - BUTTON_HEIGHT );
+		instance->gButtons[ 0 ].setPosition(&instance->gButtons[0], 0, 0 );
+		instance->gButtons[ 1 ].setPosition(&instance->gButtons[1], SCREEN_WIDTH - BUTTON_WIDTH, 0 );
+		instance->gButtons[ 2 ].setPosition(&instance->gButtons[2], 0, SCREEN_HEIGHT - BUTTON_HEIGHT );
+		instance->gButtons[ 3 ].setPosition(&instance->gButtons[3], SCREEN_WIDTH - BUTTON_WIDTH, SCREEN_HEIGHT - BUTTON_HEIGHT );
 	}
 
 	return success;
@@ -100,9 +100,10 @@ void render (lTexture_s *self, CL_Instance* instance, int x, int y, SDL_Rect* cl
 
     SDL_RenderCopyEx( instance->gRenderer, self->mTexture, clip, &renderQuad, angle, center, flip);
 }
+
 void renderButton(lButton* self, CL_Instance* instance)
 {
-    instance->gButtonSpriteSheetTexture->render(instance->gSpriteSheetTexture, instance, self->mPosition.x, self->mPosition.y, &instance->gSpriteClips[ self->mCurrentSprite ]);
+    instance->gButtonSpriteSheetTexture->render(instance->gButtonSpriteSheetTexture, instance, self->mPosition.x, self->mPosition.y, &instance->gSpriteClips[ self->mCurrentSprite ], 0, NULL, SDL_FLIP_NONE);
 }
 
 void close_sprite(CL_Instance* instance)
@@ -111,9 +112,6 @@ void close_sprite(CL_Instance* instance)
     SDL_DestroyWindow(instance->gWindow);
     instance->gWindow = NULL;
     instance->gRenderer = NULL;
-    TTF_CloseFont(instance->gFont);
-    instance->gFont = NULL;
-    TTF_Quit();
     IMG_Quit();
     SDL_Quit();
 }
@@ -147,7 +145,7 @@ bool init(CL_Instance* instance)
 		else
 		{
 			//Create renderer for window
-			instance->gRenderer = SDL_CreateRenderer( instance->gWindow, -1, SDL_RENDERER_ACCELERATED );
+			instance->gRenderer = SDL_CreateRenderer( instance->gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
 			if( instance->gRenderer == NULL )
 			{
 				printf( "Renderer could not be created! SDL Error: %s\n", SDL_GetError() );
@@ -165,12 +163,6 @@ bool init(CL_Instance* instance)
 					printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
 					success = false;
 				}
-                //Initialize SDL_ttf
-                if (TTF_Init() == -1)
-                {
-                    printf("SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError() );
-                    success = false;
-                }
 			}
 		}
 	}
@@ -190,35 +182,37 @@ void setAlpha(SDL_Texture* mTexture, Uint8 alpha)
     SDL_SetTextureAlphaMod(mTexture, alpha);
 }
 
-void setPosition(lButton *button , int x, int y)
+void setPosition(lButton *self , int x, int y)
 {
-    button->mPosition.x = x;
-    button->mPosition.y = y;
+    self->mPosition.x = x;
+    self->mPosition.y = y;
 }
 
-void handleEvent(SDL_Event* e, lButton* button)
+void handleEvent(SDL_Event* e, lButton* self)
 {
-    if (e->type == SDL_MOUSEMOTION || e->type == SDL_MOUSEBUTTONDOWN || e->type == SDL_MOUSEBUTTONUP)
+	if( e->type == SDL_MOUSEMOTION || e->type == SDL_MOUSEBUTTONDOWN || e->type == SDL_MOUSEBUTTONUP )
     {
         int x, y;
         SDL_GetMouseState(&x,&y);
         bool inside = true;
         //mouse is left of the button
-        if (x < button->mPosition.x)
+        if (x < self->mPosition.x)
             inside = false;
         //mouse is right of the button
-        else if (x > button->mPosition.x + BUTTON_WIDTH)
+        else if (x > self->mPosition.x + BUTTON_WIDTH)
             inside = false;
         //Mouse above the button
-        else if (y < button->mPosition.y)
+        else if (y < self->mPosition.y)
             inside = false;
         //Mouse below the button
-        else if (y > button->mPosition.y + BUTTON_HEIGHT )
+        else if (y > self->mPosition.y + BUTTON_HEIGHT )
             inside = false;
 
         //Mouse is outside button
         if (!inside)
-            button->mCurrentSprite = BUTTON_SPRITE_MOUSE_OUT;
+        {
+            self->mCurrentSprite = BUTTON_SPRITE_MOUSE_OUT;
+        }
         //Mouse is inside button
         else
         {
@@ -226,13 +220,13 @@ void handleEvent(SDL_Event* e, lButton* button)
             switch(e->type)
             {
                 case SDL_MOUSEMOTION:
-                button->mCurrentSprite =  BUTTON_SPRITE_MOUSE_OVER_MOTION;
+                self->mCurrentSprite =  BUTTON_SPRITE_MOUSE_OVER_MOTION;
                 break;
                 case SDL_MOUSEBUTTONDOWN:
-                button->mCurrentSprite = BUTTON_SPRITE_MOUSE_DOWN;
+                self->mCurrentSprite = BUTTON_SPRITE_MOUSE_DOWN;
                 break;
                 case SDL_MOUSEBUTTONUP:
-                button->mCurrentSprite = BUTTON_SPRITE_MOUSE_UP;
+                self->mCurrentSprite = BUTTON_SPRITE_MOUSE_UP;
                 break;
             }
         }
@@ -245,17 +239,21 @@ int main()
 {
     CL_Instance instance;
     lTexture_s texture;
-    lButton button;
-    button.setPosition = &setPosition;
-    button.mCurrentSprite = BUTTON_SPRITE_MOUSE_OUT;
     instance.gButtonSpriteSheetTexture = &texture;
     instance.gButtonSpriteSheetTexture->loadFromFile = &loadFromFile;
     instance.gButtonSpriteSheetTexture->render = &render;
     instance.gButtonSpriteSheetTexture->setAlpha = &setAlpha;
     instance.gButtonSpriteSheetTexture->setBlendMode = &setBlendMode;
-    instance.gButtonSpriteSheetTexture->loadFromRenderedText = &loadFromRenderedText;
 
-    lButton gButtons[ TOTAL_BUTTONS ];
+    for( int i = 0; i < TOTAL_BUTTONS; ++i )
+    {
+        instance.gButtons[ i ].setPosition = &setPosition;
+        instance.gButtons[ i ].handleEvent = &handleEvent;
+        instance.gButtons[ i ].render = &renderButton;
+        instance.gButtons[ i ].mPosition.x = 0;
+        instance.gButtons[ i ].mPosition.y = 0;
+        instance.gButtons[ i ].mCurrentSprite = BUTTON_SPRITE_MOUSE_OUT;
+    }
 
     SDL_RendererFlip flipType = SDL_FLIP_NONE;
 
@@ -280,26 +278,26 @@ int main()
                     if (e.type == SDL_QUIT)
                     {
                         quit = true;
-                    }     
+                    }
+                    // Handle button events
+                    for (int i = 0; i < TOTAL_BUTTONS; ++i)
+                    {
+                        instance.gButtons[ i ].handleEvent( &e, &instance.gButtons[ i ] );
+                    } 
                 }
-                // Handle button events
-                for (int i = 0; i < TOTAL_BUTTONS; ++i)
+
+                //Clear screen
+                SDL_SetRenderDrawColor( instance.gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
+                SDL_RenderClear( instance.gRenderer );
+
+                //Render buttons
+                for( int i = 0; i < TOTAL_BUTTONS; ++i )
                 {
-                    gButtons[ i ].handleEvent( &e, &gButtons[ i ] );
+                    instance.gButtons[ i ].render(&instance.gButtons[i], &instance);
                 }
+                //Update screen
+                SDL_RenderPresent( instance.gRenderer );
             }
-            //Clear screen
-            SDL_SetRenderDrawColor( instance.gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
-            SDL_RenderClear( instance.gRenderer );
-
-            //Render buttons
-            for( int i = 0; i < TOTAL_BUTTONS; ++i )
-            {
-                gButtons[ i ].render();
-            }
-
-            //Update screen
-            SDL_RenderPresent( instance.gRenderer );
         }
     }
     close_sprite(&instance);

@@ -3,7 +3,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-#include <SDL2/SDL_ttf.h>
+// #include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <math.h>
@@ -17,21 +17,12 @@
 
 enum LButtonSprite
 {
-    BUTTON_SPRITE_MOUSE_OUT = 0,
-    BUTTON_SPRITE_MOUSE_OVER_MOTION = 1,
-    BUTTON_SPRITE_MOUSE_DOWN = 2,
-    BUTTON_SPRITE_MOUSE_UP = 3,
-    BUTTON_SPRITE_TOTAL = 4,
+    BUTTON_SPRITE_MOUSE_OUT,
+    BUTTON_SPRITE_MOUSE_OVER_MOTION,
+    BUTTON_SPRITE_MOUSE_DOWN,
+    BUTTON_SPRITE_MOUSE_UP,
+    BUTTON_SPRITE_TOTAL,
 };
-
-typedef struct LButton
-{
-    void (*setPosition)(int x, int y);
-    void (*handleEvent)(int x, int y);
-    void (*render)();
-    SDL_Point mPosition;
-    int mCurrentSprite;
-} lButton;
 
 enum KeyPressSurfaces
 {
@@ -57,8 +48,18 @@ typedef struct SDL_Instance
 
 // Forward declaration of lTexture_s
 typedef struct lTexture lTexture_s;
+typedef struct LButton lButton;
+typedef struct CL_Instance CL_Instance;
+struct LButton
+{
+    void (*setPosition)(lButton*, int x, int y);
+    void (*handleEvent)(SDL_Event* , struct LButton* );
+    void (*render)(struct LButton* , CL_Instance *);
+    SDL_Point mPosition;
+    int mCurrentSprite;
+};
 
-typedef struct CL_Instance
+struct CL_Instance
 {
     SDL_Window* gWindow;
     SDL_Renderer* gRenderer;
@@ -69,10 +70,11 @@ typedef struct CL_Instance
     lTexture_s* gSpriteSheetTexture;
     lTexture_s* gButtonSpriteSheetTexture;
     lTexture_s* gModulatedTexture;
-    TTF_Font* gFont;
+    // TTF_Font* gFont;
     SDL_Rect gSpriteClips[ 4 ];
     lButton gButtons[ TOTAL_BUTTONS ];
-} CL_Instance;
+};
+
 
 // Definition of lTexture_s
 struct lTexture
@@ -80,8 +82,8 @@ struct lTexture
     bool (*loadFromFile)(lTexture_s*, CL_Instance*, char *);
     // void (*render)(lTexture_s*, CL_Instance* , int, int ); // this one is for color
     // void (*render)(lTexture_s*, CL_Instance* , int, int, SDL_Rect* ); // this one is for sprite
-    // void (*render)(lTexture_s*, CL_Instance* , int, int, SDL_Rect* , double , SDL_Point* , SDL_RendererFlip );
-    void (*render)(lTexture_s*, CL_Instance* , int, int, SDL_RendererFlip ); // this one is for handling button events
+    void (*render)(lTexture_s*, CL_Instance* , int, int, SDL_Rect* , double , SDL_Point* , SDL_RendererFlip );
+    // void (*render)(lTexture_s*, CL_Instance* , int, int, SDL_RendererFlip ); // this one is for handling button events
     bool (*loadFromRenderedText)(lTexture_s* , CL_Instance*, char*, SDL_Color);
     int (*getWidth)(lTexture_s*);
     int (*getHeight)(lTexture_s*);
