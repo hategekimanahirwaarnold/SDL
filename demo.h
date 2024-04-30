@@ -14,6 +14,7 @@
 #define BUTTON_WIDTH 300
 #define BUTTON_HEIGHT 200
 #define TOTAL_BUTTONS 4
+#define JOYSTICK_DEAD_ZONE 8000
 
 enum LButtonSprite
 {
@@ -78,6 +79,7 @@ struct CL_Instance
     // TTF_Font* gFont;
     SDL_Rect gSpriteClips[ 4 ];
     lButton gButtons[ TOTAL_BUTTONS ];
+    SDL_Joystick* gGameController;
 };
 
 
