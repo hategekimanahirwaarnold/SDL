@@ -70,6 +70,11 @@ struct CL_Instance
     lTexture_s* gSpriteSheetTexture;
     lTexture_s* gButtonSpriteSheetTexture;
     lTexture_s* gModulatedTexture;
+    lTexture_s* gPressTexture;
+    lTexture_s* gUpTexture;
+    lTexture_s* gDownTexture;
+    lTexture_s* gLeftTexture;
+    lTexture_s* gRightTexture;
     // TTF_Font* gFont;
     SDL_Rect gSpriteClips[ 4 ];
     lButton gButtons[ TOTAL_BUTTONS ];
