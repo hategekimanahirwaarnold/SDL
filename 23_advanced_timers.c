@@ -13,11 +13,17 @@ bool loadMedia(CL_Instance* instance)
     {
         //Render text
         SDL_Color textColor = {0, 0, 0, 255};
-        if (!instance->gPromptTexture->loadFromRenderedText(instance->gPromptTexture, instance, "Press Enter to Reset Start Time.", textColor) )
+        if (!instance->gStartPromptTexture->loadFromRenderedText(instance->gStartPromptTexture, instance, "Press S to Start or Stop Time.", textColor) )
         {
-            printf("Failed to render prompt text texture!\n");
+            printf("Failed to render start/stop text texture!\n");
             success = false;
         }
+        if (!instance->gPausePromptTexture->loadFromRenderedText(instance->gPausePromptTexture, instance, "Press P to Pause or Unpause Time.", textColor) )
+        {
+            printf("Failed to render pause/unpause text texture!\n");
+            success = false;
+        }
+ 
     }
 
    return success;
@@ -174,6 +180,91 @@ bool loadFromRenderedText(lTexture_s* self, CL_Instance* instance, char* texture
     return self->mTexture != NULL;
 }
 
+void constructor(lTimer* self)
+{
+    self->mStartTicks = 0;
+    self->mPausedTicks = 0;
+    self->mPaused = false;
+    self->mStarted = false;
+}
+
+void start(lTimer* self)
+{
+    self->mStarted = true;
+    self->mPaused = false;
+    //get current time
+    self->mStartTicks = SDL_GetTicks();
+    self->mPausedTicks = 0;
+}
+
+void stop(lTimer* self)
+{
+    self->mStarted = false;
+    self->mPaused = false;
+    //clear tick variables
+    self->mStartTicks = 0;
+    self->mPausedTicks = 0;
+}
+
+void pause(lTimer* self)
+{
+    if (self->mStarted && !self->mPaused)
+    {
+        //pause the timer
+        self->mPaused = true;
+        //calculate the paused ticks
+        self->mPausedTicks = SDL_GetTicks() - self->mStartTicks;
+        self->mStartTicks = 0;
+    }
+}
+
+void unpause(lTimer* self)
+{
+    //if the timer is running and paused
+    if (self->mStarted && self->mPaused)
+    {
+        //unpause the timer
+        self->mPaused = false;
+        //Reset the starting ticks
+        self->mStartTicks = SDL_GetTicks() - self->mPausedTicks;
+        //reset the paused ticks
+        self->mPausedTicks = 0;
+    }
+}
+
+Uint32 getTicks(lTimer* self)
+{
+    Uint32 time = 0;
+    //if the timer is running
+    if (self->mStarted)
+    {
+        //it the timer is paused
+        if (self->mPaused)
+        {
+            //Return the number of ticks when the timer was paused
+            time = self->mPausedTicks;
+        }
+        else
+        {
+            //return the current time minus the start time
+            time = SDL_GetTicks() - self->mStartTicks;
+        }
+    }
+
+    return time;
+}
+
+bool isStarted(lTimer* self)
+{
+    //Timer is running and puased or unpaused
+    return self->mStarted;
+}
+bool isPaused(lTimer* self)
+{
+    //timer is running and paused
+    return self->mPaused && self->mStarted;
+}
+
 void texture_constructor(lTexture_s** self)
 {
     *self = (lTexture_s*)malloc(sizeof(lTexture_s));
@@ -188,11 +279,30 @@ void texture_constructor(lTexture_s** self)
     (*self)->loadFromRenderedText = &loadFromRenderedText;
 }
 
+
+void time_constructor(lTimer* self)
+{
+    (self)->start = &start;
+    (self)->stop = &stop;
+    (self)->pause = &pause;
+    (self)->unpause = &unpause;
+    (self)->getTicks = &getTicks;
+    (self)->isStarted = &isStarted;
+    (self)->isPaused = &isPaused;
+    (self)->mStartTicks = 0;
+    (self)->mPausedTicks = 0;
+    (self)->mPaused = false;
+    (self)->mStarted = false;
+}
+
 int main()
 {
     CL_Instance instance;
-    texture_constructor(&instance.gPromptTexture);
+    lTimer timer;
+    texture_constructor(&instance.gStartPromptTexture);
+    texture_constructor(&instance.gPausePromptTexture);
     texture_constructor(&instance.gTimeTextTexture);
+    time_constructor(&timer);
 
     SDL_RendererFlip flipType = SDL_FLIP_NONE;
 
@@ -209,14 +319,13 @@ int main()
         {
             bool quit = false;
             SDL_Event e;
-
             //Set text color as black
             SDL_Color textColor = { 0, 0, 0, 255 };
 
             //Current time start time
             Uint32 startTime = 0;
             char timeText[100] = "Milliseconds since start time: ";
-            int num;
+            double num;
             char formatted[20];
             int position = strlen(timeText);
             while(!quit)
@@ -228,13 +337,36 @@ int main()
                         quit = true;
                     } 
                     //Reset start time on return keypress
-                    else if( e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_RETURN )
+                    else if( e.type == SDL_KEYDOWN )
                     {
-                        startTime = SDL_GetTicks();
+                        //Start/stop
+                        if( e.key.keysym.sym == SDLK_s )
+                        {
+                            if( timer.isStarted() )
+                            {
+                                timer.stop();
+                            }
+                            else
+                            {
+                                timer.start();
+                            }
+                        }
+                        //Pause/unpause
+                        else if( e.key.keysym.sym == SDLK_p )
+                        {
+                            if( timer.isPaused() )
+                            {
+                                timer.unpause();
+                            }
+                            else
+                            {
+                                timer.pause();
+                            }
+                        }
                     }
                 }
-                num = SDL_GetTicks() - startTime;
-                sprintf(formatted, "%d", num);
+                num = timer.getTicks() / 1000.f;
+                sprintf(formatted, "%f", num);
                 strcpy(timeText + position, formatted);
 
                 
@@ -248,8 +380,9 @@ int main()
                 SDL_RenderClear(instance.gRenderer);
 
                 // render arrow texture
-                instance.gPromptTexture->render(instance.gPromptTexture, &instance, (SCREEN_WIDTH - instance.gPromptTexture->mWidth) / 2, 0, NULL, 0, NULL, flipType);
-                instance.gTimeTextTexture->render(instance.gTimeTextTexture, &instance, (SCREEN_WIDTH - instance.gPromptTexture->mWidth) / 2, (SCREEN_HEIGHT - instance.gPromptTexture->mHeight) / 2, NULL, 0, NULL, flipType);
+                instance.gStartPromptTexture->render(instance.gStartPromptTexture, &instance, (SCREEN_WIDTH - instance.gStartPromptTexture->mWidth) / 2, 0, NULL, 0, NULL, flipType);
+                instance.gPausePromptTexture->render(instance.gPausePromptTexture, &instance, (SCREEN_WIDTH - instance.gStartPromptTexture->mWidth) / 2, instance.gStartPromptTexture->mHeight, NULL, 0, NULL, flipType);
+                instance.gTimeTextTexture->render(instance.gTimeTextTexture, &instance, (SCREEN_WIDTH - instance.gStartPromptTexture->mWidth) / 2, (SCREEN_HEIGHT - instance.gStartPromptTexture->mHeight) / 2, NULL, 0, NULL, flipType);
 
                 //Update screen
                 SDL_RenderPresent(instance.gRenderer);

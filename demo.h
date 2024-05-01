@@ -43,6 +43,31 @@ enum KeyPressSurfaces
 typedef struct lTexture lTexture_s;
 typedef struct LButton lButton;
 typedef struct CL_Instance CL_Instance;
+typedef struct LTimer lTimer;
+
+struct LTimer
+{
+    void (*start)();
+    void (*stop)();
+    void (*pause)();
+    void (*unpause)();
+    //Gets the timer's time
+    Uint32 (*getTicks)();
+
+    //Checks the status of the timer
+    bool (*isStarted)();
+    bool (*isPaused)();
+    //The clock time when the timer started
+    Uint32 mStartTicks;
+
+    //The ticks stored when the timer was paused
+    Uint32 mPausedTicks;
+
+    //The timer status
+    bool mPaused;
+    bool mStarted;
+};
+
 struct LButton
 {
     void (*setPosition)(lButton*, int x, int y);
@@ -71,6 +96,8 @@ struct CL_Instance
     lTexture_s* gSplashTexture;
     lTexture_s* gPromptTexture;
     lTexture_s* gTimeTextTexture;
+    lTexture_s* gStartPromptTexture;
+    lTexture_s* gPausePromptTexture;
     TTF_Font* gFont;
     SDL_Rect gSpriteClips[ 4 ];
     lButton gButtons[ TOTAL_BUTTONS ];
