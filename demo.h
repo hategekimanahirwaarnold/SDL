@@ -4,7 +4,9 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
-// #include <SDL2/SDL_ttf.h>
+#include <string.h>
+#include <stdlib.h>
+#include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <math.h>
@@ -68,7 +70,8 @@ struct CL_Instance
     lTexture_s* gRightTexture;
     lTexture_s* gSplashTexture;
     lTexture_s* gPromptTexture;
-    // TTF_Font* gFont;
+    lTexture_s* gTimeTextTexture;
+    TTF_Font* gFont;
     SDL_Rect gSpriteClips[ 4 ];
     lButton gButtons[ TOTAL_BUTTONS ];
     // SDL_Joystick* gGameController;
