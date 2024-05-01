@@ -3,6 +3,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_mixer.h>
 // #include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -35,17 +36,6 @@ enum KeyPressSurfaces
     KEY_PRESS_SURFACE_TOTAL
 };
 
-typedef struct SDL_Instance
-{
-    SDL_Window* window;
-    SDL_Texture* gTexture;
-    SDL_Renderer* gRenderer;
-    SDL_Surface* gScreenSurface;
-    SDL_Surface* gHelloWorld;
-    SDL_Surface* gKeyPressSurfaces[ KEY_PRESS_SURFACE_TOTAL ];
-    SDL_Surface* gCurrentSurface;
-    SDL_Surface* gStretchedSurface;
-} SDL_Instance;
 
 // Forward declaration of lTexture_s
 typedef struct lTexture lTexture_s;
@@ -77,6 +67,7 @@ struct CL_Instance
     lTexture_s* gLeftTexture;
     lTexture_s* gRightTexture;
     lTexture_s* gSplashTexture;
+    lTexture_s* gPromptTexture;
     // TTF_Font* gFont;
     SDL_Rect gSpriteClips[ 4 ];
     lButton gButtons[ TOTAL_BUTTONS ];
@@ -84,8 +75,12 @@ struct CL_Instance
     SDL_GameController* gGameController;
     SDL_Joystick* gJoystick;
     SDL_Haptic* gJoyHaptic;
+    Mix_Music* gMusic;
+    Mix_Chunk* gScratch;
+    Mix_Chunk* gHigh;
+    Mix_Chunk* gMedium;
+    Mix_Chunk* gLow;
 };
-
 
 // Definition of lTexture_s
 struct lTexture
@@ -106,6 +101,18 @@ struct lTexture
     int mHeight;
 };
 
+typedef struct SDL_Instance
+{
+    SDL_Window* window;
+    SDL_Texture* gTexture;
+    SDL_Renderer* gRenderer;
+    SDL_Surface* gScreenSurface;
+    SDL_Surface* gHelloWorld;
+    SDL_Surface* gKeyPressSurfaces[ KEY_PRESS_SURFACE_TOTAL ];
+    SDL_Surface* gCurrentSurface;
+    SDL_Surface* gStretchedSurface;
+} SDL_Instance;
+
 int init_instance(SDL_Instance *);
 void draw_stuff(SDL_Instance* );
 int poll_events();
@@ -119,6 +126,7 @@ bool loadMedia_Geometry();
 void close(SDL_Instance *);
 void close_color(CL_Instance *);
 void close_sprite(CL_Instance *);
+void close_instance(CL_Instance *);
 SDL_Surface* loadSurface(char* , SDL_Instance* );
 SDL_Texture* loadTexture(char *path, SDL_Instance* );
 
