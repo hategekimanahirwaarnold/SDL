@@ -65,7 +65,11 @@ struct Dot
 
     //Shows the dot on the screen
     void (*render)(struct Dot*);
+    //gets the collision boxes
+    SDL_Rect* (*getColliders)(struct Dot* );
 
+    //Moves the collision boxes relative to the dot's offset
+    void (*shiftColliders)(struct Dot*);
     //The X and Y offsets of the dot
     int mPosX; 
     int mPosY;
@@ -73,6 +77,7 @@ struct Dot
     int mVelX;
     int mVelY;
     SDL_Rect mCollider;
+    SDL_Rect* mColliders;
 };
 
 struct LTimer
@@ -185,7 +190,7 @@ bool loadMedia_Color(CL_Instance *);
 bool loadMedia_Sprite(CL_Instance *);
 bool loadMedia_Modulation(CL_Instance *);
 bool loadMedia_Geometry();
-bool checkCollision(SDL_Rect a, SDL_Rect b);
+bool checkCollision(SDL_Rect *a, SDL_Rect *b); // keep changing depending on the file
 void close(SDL_Instance *);
 void close_color(CL_Instance *);
 void close_sprite(CL_Instance *);
