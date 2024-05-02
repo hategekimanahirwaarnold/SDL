@@ -46,6 +46,33 @@ typedef struct lTexture lTexture_s;
 typedef struct LButton lButton;
 typedef struct CL_Instance CL_Instance;
 typedef struct LTimer lTimer;
+typedef struct Dot Dot_s;
+
+struct Dot
+{
+    //The dimensions of the dot
+    int DOT_WIDTH;
+    int DOT_HEIGHT;
+
+    //Maximum axis velocity of the dot
+    int DOT_VEL;
+
+    //Takes key presses and adjusts the dot's velocity
+    void (*handleEvent)(struct Dot*, SDL_Event* e );
+
+    //Moves the dot
+    void (*move)(struct Dot*);
+
+    //Shows the dot on the screen
+    void (*render)(struct Dot*);
+
+    //The X and Y offsets of the dot
+    int mPosX; 
+    int mPosY;
+    //The velocity of the dot
+    int mVelX;
+    int mVelY;
+};
 
 struct LTimer
 {
@@ -101,6 +128,7 @@ struct CL_Instance
     lTexture_s* gStartPromptTexture;
     lTexture_s* gPausePromptTexture;
     lTexture_s* gFPSTextTexture; 
+    lTexture_s* gDotTexture; 
     TTF_Font* gFont;
     SDL_Rect gSpriteClips[ 4 ];
     lButton gButtons[ TOTAL_BUTTONS ];
