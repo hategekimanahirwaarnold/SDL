@@ -11,6 +11,8 @@
 #include <stdbool.h>
 #include <math.h>
 
+#define LEVEL_WIDTH 1280
+#define LEVEL_HEIGHT 960
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
 #define WALKING_ANIMATION_FRAMES 4
@@ -20,6 +22,7 @@
 #define JOYSTICK_DEAD_ZONE 8000
 #define SCREEN_FPS 60
 #define SCREEN_TICKS_PER_FRAME (1000 / SCREEN_FPS)
+
 
 enum LButtonSprite
 {
@@ -67,10 +70,13 @@ struct Dot
     void (*handleEvent)(struct Dot*, SDL_Event* e );
 
     //Moves the dot (it will keep changing depending on the file you want to compile)
-    void (*move)(struct Dot*, SDL_Rect*, Circle_s* );
+    void (*move)(struct Dot*);
 
     //Shows the dot on the screen
-    void (*render)(struct Dot*);
+    // void (*render)(struct Dot*);
+    //Shows the dot on the screen relative to the camera
+    void (*render)(int camX, int camY);
+
     //gets the collision boxes
     // SDL_Rect* (*getColliders)(struct Dot* );
     // gets collision circle
@@ -145,6 +151,7 @@ struct CL_Instance
     lTexture_s* gPausePromptTexture;
     lTexture_s* gFPSTextTexture; 
     lTexture_s* gDotTexture; 
+    lTexture_s* gBGTexture; 
     TTF_Font* gFont;
     SDL_Rect gSpriteClips[ 4 ];
     lButton gButtons[ TOTAL_BUTTONS ];
