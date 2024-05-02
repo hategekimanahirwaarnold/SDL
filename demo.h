@@ -18,6 +18,8 @@
 #define BUTTON_HEIGHT 200
 #define TOTAL_BUTTONS 4
 #define JOYSTICK_DEAD_ZONE 8000
+#define SCREEN_FPS 60
+#define SCREEN_TICKS_PER_FRAME (1000 / SCREEN_FPS)
 
 enum LButtonSprite
 {
