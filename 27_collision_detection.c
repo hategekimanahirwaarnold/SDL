@@ -63,9 +63,6 @@ void close_sprite(CL_Instance* instance)
     SDL_DestroyWindow(instance->gWindow);
     instance->gWindow = NULL;
     instance->gRenderer = NULL;
-    TTF_CloseFont(instance->gFont);
-    instance->gFont = NULL;
-    TTF_Quit();
     IMG_Quit();
     SDL_Quit();
 }
@@ -310,23 +307,72 @@ void handleEvent(Dot_s* self, SDL_Event* e )
     }
 }
 
-void move(Dot_s* self)
+void move(Dot_s* self, SDL_Rect* wall)
 {
     self->mPosX += self->mVelX;
+    self->mCollider.x = self->mPosX;
     // if the dot went too far to the left or right
-    if ( ( self->mPosX < 0 ) || ( self->mPosX + self->DOT_WIDTH > SCREEN_WIDTH ))
+    if ( ( self->mPosX < 0 ) || ( self->mPosX + self->DOT_WIDTH > SCREEN_WIDTH ) || checkCollision( self->mCollider, *wall))
     {
         //Move back
         self->mPosX -= self->mVelX;
+        self->mCollider.x = self->mPosX;
     }
     // Move the dot up or down
     self->mPosY += self->mVelY;
+    self->mCollider.y = self->mPosY;
     // If the dot went too far up or down
-    if ( ( self->mPosY < 0 ) || ( self->mPosY + self->DOT_HEIGHT > SCREEN_HEIGHT ) )
+    if ( ( self->mPosY < 0 ) || ( self->mPosY + self->DOT_HEIGHT > SCREEN_HEIGHT ) || checkCollision( self->mCollider, *wall ) )
     {
         //Move back
         self->mPosY -= self->mVelY;
+        self->mCollider.y = self->mPosY;
     }
+}
+
+bool checkCollision(SDL_Rect a, SDL_Rect b)
+{
+    //The sides of the rectangles
+    int leftA, leftB;
+    int rightA, rightB;
+    int topA, topB;
+    int bottomA, bottomB;
+
+    //Calculate the sides of rect A
+    leftA = a.x;
+    rightA = a.x + a.w;
+    topA = a.y;
+    bottomA = a.y + a.h;
+
+    //Calculate the sides of rect B
+    leftB = b.x;
+    rightB = b.x + b.w;
+    topB = b.y;
+    bottomB = b.y + b.h;
+
+    //If any of the sides from A are outside of B
+    if( bottomA <= topB )
+    {
+        return false;
+    }
+
+    if( topA >= bottomB )
+    {
+        return false;
+    }
+
+    if( rightA <= leftB )
+    {
+        return false;
+    }
+
+    if( leftA >= rightB )
+    {
+        return false;
+    }
+
+    //If none of the sides from A are outside B
+    return true;
 }
 
 void dot_constructor(Dot_s* self)
@@ -340,13 +386,13 @@ void dot_constructor(Dot_s* self)
     (self)->DOT_VEL = 10;
     (self)->move = &move;
     (self)->handleEvent = &handleEvent;
+    self->mCollider.w = self->DOT_WIDTH;
+    self->mCollider.h = self->DOT_HEIGHT;
 }
 
 int main()
 {
     CL_Instance instance;
-    lTimer fpsTimer;
-    lTimer capTimer;
     Dot_s* dot = malloc(sizeof(Dot_s));
     texture_constructor(&instance.gDotTexture);
     dot_constructor(dot);
@@ -363,10 +409,14 @@ int main()
             printf("Failed to load media!\n");
         } else
         {
-
             bool quit = false;
             SDL_Event e;
-
+            //Set the wall
+            SDL_Rect wall;
+            wall.x = 300;
+            wall.y = 40;
+            wall.w = 40;
+            wall.h = 400;
             while(!quit)
             {
                 while(SDL_PollEvent( &e ) != 0)
@@ -379,12 +429,16 @@ int main()
                     dot->handleEvent(dot, &e);
                 }
                 //Move the dot
-                dot->move(dot);
+                dot->move(dot, &wall);
 
                 // clear screen
                 SDL_SetRenderDrawColor(instance.gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
                 SDL_RenderClear(instance.gRenderer);
 
+                //Render wall
+                SDL_SetRenderDrawColor( instance.gRenderer, 0x00, 0x00, 0x00, 0xFF );        
+                SDL_RenderDrawRect( instance.gRenderer, &wall );
+ 
                 // render texture
                 instance.gDotTexture->render(instance.gDotTexture, &instance, dot->mPosX, dot->mPosY, NULL, 0, NULL, flipType);
 

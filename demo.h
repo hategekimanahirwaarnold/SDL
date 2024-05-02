@@ -60,8 +60,8 @@ struct Dot
     //Takes key presses and adjusts the dot's velocity
     void (*handleEvent)(struct Dot*, SDL_Event* e );
 
-    //Moves the dot
-    void (*move)(struct Dot*);
+    //Moves the dot (it will keep changing depending on the file you want to compile)
+    void (*move)(struct Dot*, SDL_Rect* );
 
     //Shows the dot on the screen
     void (*render)(struct Dot*);
@@ -72,6 +72,7 @@ struct Dot
     //The velocity of the dot
     int mVelX;
     int mVelY;
+    SDL_Rect mCollider;
 };
 
 struct LTimer
@@ -184,6 +185,7 @@ bool loadMedia_Color(CL_Instance *);
 bool loadMedia_Sprite(CL_Instance *);
 bool loadMedia_Modulation(CL_Instance *);
 bool loadMedia_Geometry();
+bool checkCollision(SDL_Rect a, SDL_Rect b);
 void close(SDL_Instance *);
 void close_color(CL_Instance *);
 void close_sprite(CL_Instance *);
