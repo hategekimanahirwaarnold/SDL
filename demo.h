@@ -47,6 +47,12 @@ typedef struct LButton lButton;
 typedef struct CL_Instance CL_Instance;
 typedef struct LTimer lTimer;
 typedef struct Dot Dot_s;
+typedef struct Circle Circle_s;
+
+struct Circle
+{
+    int x, y, r;
+};
 
 struct Dot
 {
@@ -61,12 +67,14 @@ struct Dot
     void (*handleEvent)(struct Dot*, SDL_Event* e );
 
     //Moves the dot (it will keep changing depending on the file you want to compile)
-    void (*move)(struct Dot*, SDL_Rect* );
+    void (*move)(struct Dot*, SDL_Rect*, Circle_s* );
 
     //Shows the dot on the screen
     void (*render)(struct Dot*);
     //gets the collision boxes
-    SDL_Rect* (*getColliders)(struct Dot* );
+    // SDL_Rect* (*getColliders)(struct Dot* );
+    // gets collision circle
+    Circle_s* (*getCollider)(struct Dot*);
 
     //Moves the collision boxes relative to the dot's offset
     void (*shiftColliders)(struct Dot*);
@@ -76,7 +84,9 @@ struct Dot
     //The velocity of the dot
     int mVelX;
     int mVelY;
-    SDL_Rect mCollider;
+    Circle_s* mCollider;
+    //moves the collision circle relative to the dot's offset
+    // SDL_Rect mCollider;
     SDL_Rect* mColliders;
 };
 
@@ -190,7 +200,11 @@ bool loadMedia_Color(CL_Instance *);
 bool loadMedia_Sprite(CL_Instance *);
 bool loadMedia_Modulation(CL_Instance *);
 bool loadMedia_Geometry();
-bool checkCollision(SDL_Rect *a, SDL_Rect *b); // keep changing depending on the file
+// bool checkCollision(SDL_Rect *a, SDL_Rect *b); // keep changing depending on the file
+bool circle_checkCollision( Circle_s* a, Circle_s* b);
+bool rectangle_checkCollision( Circle_s* a, SDL_Rect* b);
+//Calculates distance squared between two points
+double distanceSquared( int x1, int y1, int x2, int y2 );
 void close(SDL_Instance *);
 void close_color(CL_Instance *);
 void close_sprite(CL_Instance *);
