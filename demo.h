@@ -98,6 +98,7 @@ struct CL_Instance
     lTexture_s* gTimeTextTexture;
     lTexture_s* gStartPromptTexture;
     lTexture_s* gPausePromptTexture;
+    lTexture_s* gFPSTextTexture; 
     TTF_Font* gFont;
     SDL_Rect gSpriteClips[ 4 ];
     lButton gButtons[ TOTAL_BUTTONS ];
