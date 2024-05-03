@@ -152,6 +152,7 @@ struct CL_Instance
     lTexture_s* gFPSTextTexture; 
     lTexture_s* gDotTexture; 
     lTexture_s* gBGTexture; 
+    lTexture_s* gInputTextTexture; 
     TTF_Font* gFont;
     SDL_Rect gSpriteClips[ 4 ];
     lButton gButtons[ TOTAL_BUTTONS ];
