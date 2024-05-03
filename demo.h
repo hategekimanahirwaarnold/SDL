@@ -73,9 +73,9 @@ struct Dot
     void (*move)(struct Dot*);
 
     //Shows the dot on the screen
-    // void (*render)(struct Dot*);
+    void (*render)(struct Dot*);
     //Shows the dot on the screen relative to the camera
-    void (*render)(int camX, int camY);
+    // void (*render)(int camX, int camY);
 
     //gets the collision boxes
     // SDL_Rect* (*getColliders)(struct Dot* );
