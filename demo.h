@@ -22,6 +22,7 @@
 #define JOYSTICK_DEAD_ZONE 8000
 #define SCREEN_FPS 60
 #define SCREEN_TICKS_PER_FRAME (1000 / SCREEN_FPS)
+#define TOTAL_DATA 10
 
 
 enum LButtonSprite
@@ -130,6 +131,8 @@ struct LButton
 
 struct CL_Instance
 {
+    Sint32 gData[ TOTAL_DATA ];
+    lTexture_s* gDataTexture[TOTAL_DATA];
     SDL_Window* gWindow;
     SDL_Renderer* gRenderer;
     lTexture_s* gTextTexture;
