@@ -66,6 +66,7 @@ typedef struct CL_Instance CL_Instance;
 typedef struct LTimer lTimer;
 typedef struct Dot Dot_s;
 typedef struct Circle Circle_s;
+typedef struct Lwindow lWindow;
 
 struct Circle
 {
@@ -147,7 +148,7 @@ struct CL_Instance
 {
     Sint32 gData[ TOTAL_DATA ];
     lTexture_s* gDataTexture[TOTAL_DATA];
-    SDL_Window* gWindow;
+    // SDL_Window* gWindow;
     SDL_Renderer* gRenderer;
     lTexture_s* gTextTexture;
     lTexture_s* gArrowTexture;
@@ -186,18 +187,16 @@ struct CL_Instance
     //Number of available devices
     lTexture_s* gDeviceTextures[ MAX_RECORDING_DEVICES ];
     int gRecordingDeviceCount;
-
     //Received audio spec
     SDL_AudioSpec gReceivedRecordingSpec;
     SDL_AudioSpec gReceivedPlaybackSpec;
-
     //Size of data buffer
     Uint32 gBufferByteSize;
-
-
     //Maximum position in data buffer for recording
     Uint32 gBufferByteMaxPosition;
-
+    //window's variables
+    lWindow* gWindow;
+    lTexture_s* gSceneTexture;
 };
 
 // global variables
@@ -224,6 +223,39 @@ struct lTexture
     SDL_Texture* mTexture;
     int mWidth;
     int mHeight;
+};
+
+struct Lwindow
+{
+    //Creates window
+    bool (*init) (lWindow*);
+
+    //Creates renderer from internal window
+    SDL_Renderer* (*createRenderer) (lWindow*);
+
+    //Handles window events
+    void (*handleEvent) (lWindow*,  CL_Instance* , SDL_Event* );
+
+    //Deallocates internals
+    void (*free_window)(lWindow*);
+
+    //Window focii
+    bool (*hasMouseFocus)(lWindow*);
+    bool (*hasKeyboardFocus)(lWindow*);
+    bool (*isMinimized)(lWindow*);
+
+    //Window data
+    SDL_Window* mWindow;
+
+    //Window dimensions
+    int mWidth;
+    int mHeight;
+
+    //Window focus
+    bool mMouseFocus;
+    bool mKeyboardFocus;
+    bool mFullScreen;
+    bool mMinimized;
 };
 
 typedef struct SDL_Instance
@@ -261,5 +293,6 @@ SDL_Surface* loadSurface(char* , SDL_Instance* );
 SDL_Texture* loadTexture(char *path, SDL_Instance* );
 void audioRecordingCallback( void* userdata, Uint8* stream, int len );
 void audioPlaybackCallback( void* userdata, Uint8* stream, int len );
+bool init_window(lWindow* window);
 
 #endif
