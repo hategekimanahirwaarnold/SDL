@@ -13,9 +13,7 @@ bool loadMedia(CL_Instance *instance)
     else
     {
         instance->gPromptTexture->loadFromRenderedText(instance->gPromptTexture, instance, "Select your recording ", gTextColor);
-        // Get capture device count
-       	// int gRecordingDeviceCount = SDL_GetNumAudioDevices( SDL_TRUE );
-        // printf("count: %d\n", gRecordingDeviceCount);
+
         instance->gRecordingDeviceCount = SDL_GetNumAudioDevices(SDL_TRUE);
         // No recording devices
         if (instance->gRecordingDeviceCount < 1)
@@ -462,17 +460,64 @@ int main()
                 
                 }
 
+				//Updating recording
+				if( currentState == RECORDING )
+				{
+					//Lock callback
+					SDL_LockAudioDevice( recordingDeviceId );
+
+					//Finished recording
+					if( gBufferBytePosition > instance.gBufferByteMaxPosition )
+					{
+						//Stop recording audio
+						SDL_PauseAudioDevice( recordingDeviceId, SDL_TRUE );
+
+						//Go on to next state
+						instance.gPromptTexture->loadFromRenderedText(instance.gPromptTexture, &instance, "Press 1 to play back. Press 2 to record again.", gTextColor );
+						currentState = RECORDED;
+					}
+
+					//Unlock callback
+					SDL_UnlockAudioDevice( recordingDeviceId );
+				}
+				//Updating playback
+				else if( currentState == PLAYBACK )
+				{
+					//Lock callback
+					SDL_LockAudioDevice( playbackDeviceId );
+
+					//Finished playback
+					if( gBufferBytePosition > instance.gBufferByteMaxPosition )
+					{
+						//Stop playing audio
+						SDL_PauseAudioDevice( playbackDeviceId, SDL_TRUE );
+
+						//Go on to next state
+						instance.gPromptTexture->loadFromRenderedText(instance.gPromptTexture, &instance, "Press 1 to play back. Press 2 to record again.", gTextColor );
+						currentState = RECORDED;
+					}
+
+					//Unlock callback
+					SDL_UnlockAudioDevice( playbackDeviceId );
+				}
+
                 // Clear screen
                 SDL_SetRenderDrawColor(instance.gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
                 SDL_RenderClear(instance.gRenderer);
 
                 // Render text textures
                 instance.gPromptTexture->render(instance.gPromptTexture, &instance, (SCREEN_WIDTH - instance.gPromptTexture->mWidth) / 2, 0, NULL, 0, NULL, flipType);
-                for (int i = 0; i < MAX_RECORDING_DEVICES; ++i)
-                {
-                    instance.gDeviceTextures[i]->render(instance.gDeviceTextures[i], &instance, (SCREEN_WIDTH - instance.gDeviceTextures[i]->mWidth) / 2, instance.gPromptTexture->mHeight + instance.gDeviceTextures[0]->mHeight * i, NULL, 0, NULL, flipType);
-                }
 
+                //User is selecting
+                if (currentState == SELECTING_DEVICE)
+                {
+                    //Render device names
+                    int yOffset = instance.gPromptTexture->mHeight * 2;
+                    for (int i = 0; i < MAX_RECORDING_DEVICES; ++i)
+                    {
+                        instance.gDeviceTextures[i]->render(instance.gDeviceTextures[i], &instance, (SCREEN_WIDTH - instance.gDeviceTextures[i]->mWidth) / 2, instance.gPromptTexture->mHeight + instance.gDeviceTextures[0]->mHeight * i, NULL, 0, NULL, flipType);
+                    }
+                }
                 // Update screen
                 SDL_RenderPresent(instance.gRenderer);
             }
