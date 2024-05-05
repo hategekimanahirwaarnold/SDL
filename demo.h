@@ -26,6 +26,7 @@
 #define MAX_RECORDING_DEVICES 10
 #define MAX_RECORDING_SECONDS 5
 #define RECORDING_BUFFER_SECONDS (MAX_RECORDING_SECONDS + 1)
+#define TOTAL_WINDOWS 3
 
 //The various recording actions we can take
 enum RecordingState
@@ -196,6 +197,7 @@ struct CL_Instance
     Uint32 gBufferByteMaxPosition;
     //window's variables
     lWindow* gWindow;
+    lWindow** gWindows;
     lTexture_s* gSceneTexture;
 };
 
@@ -230,22 +232,27 @@ struct Lwindow
     //Creates window
     bool (*init) (lWindow*);
 
-    //Creates renderer from internal window
-    SDL_Renderer* (*createRenderer) (lWindow*);
-
     //Handles window events
     void (*handleEvent) (lWindow*,  CL_Instance* , SDL_Event* );
 
+    //focueses on window
+    void (*focus) (lWindow*);
+
+    void (*render) (lWindow*);
+
+    //Creates renderer from internal window
+    SDL_Renderer* (*createRenderer) (lWindow*);
     //Deallocates internals
     void (*free_window)(lWindow*);
 
-    //Window focii
     bool (*hasMouseFocus)(lWindow*);
     bool (*hasKeyboardFocus)(lWindow*);
     bool (*isMinimized)(lWindow*);
 
     //Window data
     SDL_Window* mWindow;
+    SDL_Renderer* mRenderer;
+    int mWindowID;
 
     //Window dimensions
     int mWidth;
@@ -256,6 +263,7 @@ struct Lwindow
     bool mKeyboardFocus;
     bool mFullScreen;
     bool mMinimized;
+    bool mShown;
 };
 
 typedef struct SDL_Instance
