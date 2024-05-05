@@ -12,10 +12,10 @@ bool loadMedia(CL_Instance *instance)
     }
     else
     {
-        // Render text
-        SDL_Color textColor = {0, 0, 0, 0xFF};
-        instance->gPromptTexture->loadFromRenderedText(instance->gPromptTexture, instance, "Select your recording ", textColor);
+        instance->gPromptTexture->loadFromRenderedText(instance->gPromptTexture, instance, "Select your recording ", gTextColor);
         // Get capture device count
+       	// int gRecordingDeviceCount = SDL_GetNumAudioDevices( SDL_TRUE );
+        // printf("count: %d\n", gRecordingDeviceCount);
         instance->gRecordingDeviceCount = SDL_GetNumAudioDevices(SDL_TRUE);
         // No recording devices
         if (instance->gRecordingDeviceCount < 1)
@@ -39,7 +39,7 @@ bool loadMedia(CL_Instance *instance)
                 sprintf(promptText, "%d: %s", i, SDL_GetAudioDeviceName(i, SDL_TRUE));
 
                 //set texture from name
-                instance->gDeviceTextures[ i ]->loadFromRenderedText( instance->gDeviceTextures[i], instance, promptText, textColor);
+                instance->gDeviceTextures[ i ]->loadFromRenderedText( instance->gDeviceTextures[i], instance, promptText, gTextColor);
             }
         }
     }
@@ -105,10 +105,10 @@ void free_texture(lTexture_s *self)
 void close_sprite(CL_Instance *instance)
 {
     // Free playback audio
-    if (instance->gRecordingBuffer != NULL)
+    if (gRecordingBuffer != NULL)
     {
-        free(instance->gRecordingBuffer);
-        instance->gRecordingBuffer = NULL;
+        free(gRecordingBuffer);
+        gRecordingBuffer = NULL;
     }
     // Free loaded images
     free_texture(instance->gPromptTexture);
@@ -134,7 +134,7 @@ bool init(CL_Instance *instance)
     bool success = true;
 
     // Initialize SDL
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
     {
         printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError());
         success = false;
@@ -244,13 +244,29 @@ void texture_constructor(lTexture_s **self)
     (*self)->mTexture = NULL;
 }
 
+void audioRecordingCallback( void* userdata, Uint8* stream, int len )
+{
+	//Copy audio from stream
+	memcpy( &gRecordingBuffer[ gBufferBytePosition ], stream, len );
+
+	//Move along buffer
+	gBufferBytePosition += len;
+}
+
+void audioPlaybackCallback( void* userdata, Uint8* stream, int len )
+{
+	//Copy audio to stream
+	memcpy( stream, &gRecordingBuffer[ gBufferBytePosition ], len );
+
+	//Move along buffer
+	gBufferBytePosition += len;
+}
+
 int main()
 {
     CL_Instance instance;
     //audio data
     instance.gRecordingDeviceCount = 0;
-    instance.gRecordingBuffer = NULL;
-    instance.gBufferBytePosition = 0;
     instance.gBufferByteMaxPosition = 0;
 
     texture_constructor(&instance.gPromptTexture);
@@ -372,8 +388,8 @@ int main()
 												instance.gBufferByteMaxPosition = MAX_RECORDING_SECONDS * bytesPerSecond;
 
 												//Allocate and initialize byte buffer
-												instance.gRecordingBuffer = malloc( instance.gBufferByteSize );
-												memset( instance.gRecordingBuffer, 0, instance.gBufferByteSize );
+												gRecordingBuffer = malloc( instance.gBufferByteSize );
+												memset( gRecordingBuffer, 0, instance.gBufferByteSize );
 
 												//Go on to next state
 												instance.gPromptTexture->loadFromRenderedText(instance.gPromptTexture, &instance, "Press 1 to record for 5 seconds.", gTextColor);
@@ -395,7 +411,7 @@ int main()
 								if( e.key.keysym.sym == SDLK_1 )
 								{
 									//Go back to beginning of buffer
-									instance.gBufferBytePosition = 0;
+									gBufferBytePosition = 0;
 
 									//Start recording
 									SDL_PauseAudioDevice( recordingDeviceId, SDL_FALSE );
@@ -417,7 +433,7 @@ int main()
 								if( e.key.keysym.sym == SDLK_1 )
 								{
 									//Go back to beginning of buffer
-									instance.gBufferBytePosition = 0;
+									gBufferBytePosition = 0;
 
 									//Start playback
 									SDL_PauseAudioDevice( playbackDeviceId, SDL_FALSE );
@@ -430,8 +446,8 @@ int main()
 								if( e.key.keysym.sym == SDLK_2 )
 								{
 									//Reset the buffer
-									instance.gBufferBytePosition = 0;
-									memset( instance.gRecordingBuffer, 0, instance.gBufferByteSize );
+									gBufferBytePosition = 0;
+									memset( gRecordingBuffer, 0, instance.gBufferByteSize );
 
 									//Start recording
 									SDL_PauseAudioDevice( recordingDeviceId, SDL_FALSE );

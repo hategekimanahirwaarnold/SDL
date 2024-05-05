@@ -191,14 +191,9 @@ struct CL_Instance
     SDL_AudioSpec gReceivedRecordingSpec;
     SDL_AudioSpec gReceivedPlaybackSpec;
 
-    //Recording data buffer
-    Uint8* gRecordingBuffer;
-
     //Size of data buffer
     Uint32 gBufferByteSize;
 
-    //Position in data buffer
-    Uint32 gBufferBytePosition;
 
     //Maximum position in data buffer for recording
     Uint32 gBufferByteMaxPosition;
@@ -207,7 +202,10 @@ struct CL_Instance
 
 // global variables
 SDL_Color gTextColor =  { 0, 0, 0, 0xFF };
-
+//Recording data buffer
+Uint8* gRecordingBuffer = NULL;
+//Position in data buffer
+Uint32 gBufferBytePosition = 0;
 // Definition of lTexture_s
 
 struct lTexture
