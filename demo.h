@@ -23,6 +23,20 @@
 #define SCREEN_FPS 60
 #define SCREEN_TICKS_PER_FRAME (1000 / SCREEN_FPS)
 #define TOTAL_DATA 10
+#define MAX_RECORDING_DEVICES 10
+#define MAX_RECORDING_SECONDS 5
+#define RECORDING_BUFFER_SECONDS (MAX_RECORDING_SECONDS + 1)
+
+//The various recording actions we can take
+enum RecordingState
+{
+    SELECTING_DEVICE,
+    STOPPED,
+    RECORDING,
+    RECORDED,
+    PLAYBACK,
+    ERROR
+};
 
 
 enum LButtonSprite
@@ -168,9 +182,34 @@ struct CL_Instance
     Mix_Chunk* gHigh;
     Mix_Chunk* gMedium;
     Mix_Chunk* gLow;
+    //audio settings
+    //Number of available devices
+    lTexture_s* gDeviceTextures[ MAX_RECORDING_DEVICES ];
+    int gRecordingDeviceCount;
+
+    //Received audio spec
+    SDL_AudioSpec gReceivedRecordingSpec;
+    SDL_AudioSpec gReceivedPlaybackSpec;
+
+    //Recording data buffer
+    Uint8* gRecordingBuffer;
+
+    //Size of data buffer
+    Uint32 gBufferByteSize;
+
+    //Position in data buffer
+    Uint32 gBufferBytePosition;
+
+    //Maximum position in data buffer for recording
+    Uint32 gBufferByteMaxPosition;
+
 };
 
+// global variables
+SDL_Color gTextColor =  { 0, 0, 0, 0xFF };
+
 // Definition of lTexture_s
+
 struct lTexture
 {
     bool (*loadFromFile)(lTexture_s*, CL_Instance*, char *);
@@ -222,5 +261,7 @@ void close_sprite(CL_Instance *);
 void close_instance(CL_Instance *);
 SDL_Surface* loadSurface(char* , SDL_Instance* );
 SDL_Texture* loadTexture(char *path, SDL_Instance* );
+void audioRecordingCallback( void* userdata, Uint8* stream, int len );
+void audioPlaybackCallback( void* userdata, Uint8* stream, int len );
 
 #endif
