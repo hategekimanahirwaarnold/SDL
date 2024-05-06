@@ -27,7 +27,7 @@
 #define MAX_RECORDING_SECONDS 5
 #define RECORDING_BUFFER_SECONDS (MAX_RECORDING_SECONDS + 1)
 #define TOTAL_WINDOWS 3
-
+#define TOTAL_PARTICLES 20
 //The various recording actions we can take
 enum RecordingState
 {
@@ -68,7 +68,7 @@ typedef struct LTimer lTimer;
 typedef struct Dot Dot_s;
 typedef struct Circle Circle_s;
 typedef struct Lwindow lWindow;
-
+typedef struct Particle_s Particle;
 struct Circle
 {
     int x, y, r;
@@ -111,6 +111,14 @@ struct Dot
     //moves the collision circle relative to the dot's offset
     // SDL_Rect mCollider;
     SDL_Rect* mColliders;
+    //particles variables
+    Particle* particles[TOTAL_PARTICLES];
+    //shows the particles
+    void (*renderParticles) (Particle*);
+    //X and Y offsets
+    int mPosX, mPoxY;
+    //The velocity of the dot
+    int mVelX, mVelY;
 };
 
 struct LTimer
@@ -172,6 +180,11 @@ struct CL_Instance
     lTexture_s* gDotTexture; 
     lTexture_s* gBGTexture; 
     lTexture_s* gInputTextTexture; 
+    //particle textures
+    lTexture_s* gRedTexture;
+    lTexture_s* gGreenTexture;
+    lTexture_s* gBlueTexture;
+    lTexture_s* gShimmerTexture;
     TTF_Font* gFont;
     SDL_Rect gSpriteClips[ 4 ];
     lButton gButtons[ TOTAL_BUTTONS ];
@@ -267,6 +280,18 @@ struct Lwindow
     bool mFullScreen;
     bool mMinimized;
     bool mShown;
+};
+
+struct Particle_s
+{
+    void (*render) (Particle* );
+    void (*isDead)(Particle* );
+    //offsets
+    int mPosX, mPosY;
+    //current frame
+    int mFrame;
+    //Type of partcle
+    lTexture_s *mTexture;
 };
 
 typedef struct SDL_Instance
