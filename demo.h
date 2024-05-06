@@ -199,6 +199,8 @@ struct CL_Instance
     lWindow* gWindow;
     lWindow** gWindows;
     lTexture_s* gSceneTexture;
+    int gTotalDisplays;
+    SDL_Rect* gDisplayBounds;
 };
 
 // global variables
@@ -253,6 +255,7 @@ struct Lwindow
     SDL_Window* mWindow;
     SDL_Renderer* mRenderer;
     int mWindowID;
+    int mWindowDisplayID;
 
     //Window dimensions
     int mWidth;

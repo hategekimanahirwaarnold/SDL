@@ -365,6 +365,7 @@ int main()
             }
         }
     }
+
     close_sprite(&instance);
     return 0;
 }
