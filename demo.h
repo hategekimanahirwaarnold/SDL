@@ -16,7 +16,7 @@
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
 #define WALKING_ANIMATION_FRAMES 4
-#define BUTTON_WIDTH 300
+#define BUTTON_WIDTH 30 0
 #define BUTTON_HEIGHT 200
 #define TOTAL_BUTTONS 4
 #define JOYSTICK_DEAD_ZONE 8000
@@ -28,6 +28,28 @@
 #define RECORDING_BUFFER_SECONDS (MAX_RECORDING_SECONDS + 1)
 #define TOTAL_WINDOWS 3
 #define TOTAL_PARTICLES 20
+//Tile constants
+#define TILE_WIDTH 80
+#define TILE_HEIGHT 80
+#define TOTAL_TILES 192
+#define TOTAL_TILE_SPRITES 12
+
+//Different tile sprites
+#define TILE_RED 0
+#define TILE_GREEN 1
+#define TILE_BLUE 2
+#define TILE_CENTER 3
+#define TILE_TOP 4
+#define TILE_TOPRIGHT 5
+#define TILE_RIGHT 6
+#define TILE_BOTTOMRIGHT 7
+#define TILE_BOTTOM 8
+#define TILE_BOTTOMLEFT 9
+#define TILE_LEFT 10
+#define TILE_TOPLEFT 11
+
+
+
 //The various recording actions we can take
 enum RecordingState
 {
@@ -69,6 +91,8 @@ typedef struct Dot Dot_s;
 typedef struct Circle Circle_s;
 typedef struct Lwindow lWindow;
 typedef struct Particle_s Particle;
+typedef struct Tile_s Tile;
+
 struct Circle
 {
     int x, y, r;
@@ -87,10 +111,17 @@ struct Dot
     void (*handleEvent)(struct Dot*, SDL_Event* e );
 
     //Moves the dot (it will keep changing depending on the file you want to compile)
-    void (*move)(struct Dot*);
+    void (*move)(struct Dot*, Tile* );
+
+    //centers the camera over the dot
+    void (*setCamera)(struct Dot*, SDL_Rect* camera);
 
     //Shows the dot on the screen
-    void (*render)(struct Dot*);
+    void (*render)(struct Dot*, SDL_Rect* camera);
+
+    //Collision box of the dot
+    SDL_Rect mBox;
+
     //Shows the dot on the screen relative to the camera
     // void (*render)(int camX, int camY);
 
@@ -157,7 +188,7 @@ struct CL_Instance
     lTexture_s* gTextTexture;
     lTexture_s* gArrowTexture;
     lTexture_s* gFooTexture;
-    lTexture_s* gBackgroundTexture;  // Pointer to lTexture_s
+    lTexture_s* gBackgroundTexture; 
     lTexture_s* gSpriteSheetTexture;
     lTexture_s* gButtonSpriteSheetTexture;
     lTexture_s* gModulatedTexture;
@@ -175,6 +206,9 @@ struct CL_Instance
     lTexture_s* gDotTexture; 
     lTexture_s* gBGTexture; 
     lTexture_s* gInputTextTexture; 
+    //tile texture
+    lTexture_s* gTileTexture; 
+    SDL_Rect gTileClips[ TOTAL_TILE_SPRITES ];
     //particle textures
     lTexture_s* gRedTexture;
     lTexture_s* gGreenTexture;
@@ -209,6 +243,13 @@ struct CL_Instance
     lTexture_s* gSceneTexture;
     int gTotalDisplays;
     SDL_Rect* gDisplayBounds;
+};
+
+struct Tile_s
+{
+    void (*render)(Tile* , SDL_Rect*, CL_Instance* );
+    SDL_Rect mBox;
+    int mType;
 };
 
 // global variables
