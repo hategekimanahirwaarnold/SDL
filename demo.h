@@ -109,16 +109,11 @@ struct Dot
     int mVelY;
     Circle_s* mCollider;
     //moves the collision circle relative to the dot's offset
-    // SDL_Rect mCollider;
     SDL_Rect* mColliders;
     //particles variables
-    Particle* particles[TOTAL_PARTICLES];
+    Particle** particles;
     //shows the particles
     void (*renderParticles) (Particle*);
-    //X and Y offsets
-    int mPosX, mPoxY;
-    //The velocity of the dot
-    int mVelX, mVelY;
 };
 
 struct LTimer
@@ -157,7 +152,7 @@ struct CL_Instance
 {
     Sint32 gData[ TOTAL_DATA ];
     lTexture_s* gDataTexture[TOTAL_DATA];
-    // SDL_Window* gWindow;
+    SDL_Window* gWindow;
     SDL_Renderer* gRenderer;
     lTexture_s* gTextTexture;
     lTexture_s* gArrowTexture;
@@ -209,7 +204,7 @@ struct CL_Instance
     //Maximum position in data buffer for recording
     Uint32 gBufferByteMaxPosition;
     //window's variables
-    lWindow* gWindow;
+    // lWindow* gWindow;
     lWindow** gWindows;
     lTexture_s* gSceneTexture;
     int gTotalDisplays;
@@ -284,8 +279,8 @@ struct Lwindow
 
 struct Particle_s
 {
-    void (*render) (Particle* );
-    void (*isDead)(Particle* );
+    void (*render) (Particle* , CL_Instance* );
+    bool (*isDead)(Particle* );
     //offsets
     int mPosX, mPosY;
     //current frame
