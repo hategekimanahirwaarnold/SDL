@@ -351,12 +351,11 @@ bool loadMedia(CL_Instance* instance)
 int main()
 {
     CL_Instance instance;
-
+	lWindow windows[TOTAL_WINDOWS];
 	instance.gWindows = malloc(sizeof(lWindow) * TOTAL_WINDOWS);
 	for (int i = 0 ; i < TOTAL_WINDOWS ; i++ )
 	{
-		lWindow window;
-		instance.gWindows[i] = &window;
+		instance.gWindows[i] = &windows[i];
 		windows_constructor(instance.gWindows[i]);
 	}
 
