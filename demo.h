@@ -263,6 +263,8 @@ Uint32 gBufferBytePosition = 0;
 struct lTexture
 {
     bool (*loadFromFile)(lTexture_s*, CL_Instance*, char *);
+    bool (*loadPixelsFromFile)( lTexture_s*, CL_Instance* , char*);
+    bool (*loadFromPixels)(lTexture_s* , CL_Instance*);
     // void (*render)(lTexture_s*, CL_Instance* , int, int ); // this one is for color
     // void (*render)(lTexture_s*, CL_Instance* , int, int, SDL_Rect* ); // this one is for sprite
     void (*render)(lTexture_s*, CL_Instance* , int, int, SDL_Rect* , double , SDL_Point* , SDL_RendererFlip );
@@ -276,6 +278,13 @@ struct lTexture
     SDL_Texture* mTexture;
     int mWidth;
     int mHeight;
+
+    //Pixel accessors
+    Uint32* (*getPixels32) ();
+    Uint32 (*getPitch32)();
+    Uint32 (*mapRGBA)(lTexture_s*, Uint8 r, Uint8 g, Uint8 b, Uint8 a);
+    //surface pixels
+    SDL_Surface* mSurfacePixels;
 };
 
 struct Lwindow
@@ -357,9 +366,9 @@ bool circle_checkCollision( Circle_s* a, Circle_s* b);
 bool rectangle_checkCollision( Circle_s* a, SDL_Rect* b);
 //Calculates distance squared between two points
 double distanceSquared( int x1, int y1, int x2, int y2 );
-void close(SDL_Instance *);
+// void close(SDL_Instance *);
 void close_color(CL_Instance *);
-void close_sprite(CL_Instance *);
+// void close_sprite(CL_Instance *);
 void close_instance(CL_Instance *);
 SDL_Surface* loadSurface(char* , SDL_Instance* );
 SDL_Texture* loadTexture(char *path, SDL_Instance* );
