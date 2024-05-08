@@ -126,13 +126,13 @@ struct Dot
     void (*handleEvent)(struct Dot*, SDL_Event* e );
 
     //Moves the dot (it will keep changing depending on the file you want to compile)
-    void (*move)(struct Dot*, Tile* );
+    void (*move)(struct Dot*, float );
 
     //centers the camera over the dot
     void (*setCamera)(struct Dot*, SDL_Rect* camera);
 
-    //Shows the dot on the screen
-    void (*render)(struct Dot*, SDL_Rect* camera);
+    //Shows the dot on the screen (it will keep changing depending on the file)
+    void (*render)(struct Dot* );
 
     //Collision box of the dot
     SDL_Rect mBox;

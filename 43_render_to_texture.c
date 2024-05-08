@@ -444,6 +444,7 @@ void* getBuffer(DataStream* self)
 
 	return self->mImages[ self->mCurrentImage ]->pixels;
 }
+
 // get data
 Uint32 *getPixels32(lTexture_s *self)
 {
