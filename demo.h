@@ -81,7 +81,6 @@ enum KeyPressSurfaces
     KEY_PRESS_SURFACE_TOTAL
 };
 
-
 // Forward declaration of lTexture_s
 typedef struct lTexture lTexture_s;
 typedef struct LButton lButton;
@@ -93,6 +92,21 @@ typedef struct Lwindow lWindow;
 typedef struct Particle_s Particle;
 typedef struct Tile_s Tile;
 typedef struct LBitmapFont_s LBitmapFont;
+typedef struct DataStream_s DataStream;
+
+struct DataStream_s
+{
+    //Loads initial data
+    bool (*loadMedia)(DataStream*);
+
+    //Gets current frame data
+    void* (*getBuffer)(DataStream*);
+
+    //Internal data
+    SDL_Surface* mImages[ 4 ];
+    int mCurrentImage;
+    int mDelayFrames;
+};
 
 struct Circle
 {
@@ -207,6 +221,8 @@ struct CL_Instance
     lTexture_s* gDotTexture; 
     lTexture_s* gBGTexture; 
     lTexture_s* gInputTextTexture; 
+    lTexture_s* gStreamingTexture;
+    DataStream* gDataStream; 
     //tile texture
     lTexture_s* gTileTexture; 
     SDL_Rect gTileClips[ TOTAL_TILE_SPRITES ];
@@ -272,6 +288,9 @@ struct lTexture
     // void (*render)(lTexture_s*, CL_Instance* , int, int, SDL_Rect* ); // this one is for sprite
     void (*render)(lTexture_s*, CL_Instance* , int, int, SDL_Rect* , double , SDL_Point* , SDL_RendererFlip );
     // void (*render)(lTexture_s*, CL_Instance* , int, int, SDL_RendererFlip ); // this one is for handling button events
+
+    //creates blank texture (it will keep changing depending on the file you want to compile)
+    bool (*createBlank)(lTexture_s*, CL_Instance*, int, int, SDL_TextureAccess access );
     bool (*loadFromRenderedText)(lTexture_s* , CL_Instance*, char*, SDL_Color);
     int (*getWidth)(lTexture_s*);
     int (*getHeight)(lTexture_s*);
@@ -282,13 +301,24 @@ struct lTexture
     int mWidth;
     int mHeight;
 
+    // set self as render target
+    void (*setAsRenderTarget)(lTexture_s* );
+
     //Pixel accessors
-    Uint32 (*getPixel32) (lTexture_s* , Uint32 , Uint32 );
+    Uint32 (*getPixel32) (lTexture_s*, Uint32 , Uint32 );
     Uint32* (*getPixels32) (lTexture_s* );
     Uint32 (*getPitch32)(lTexture_s*);
     Uint32 (*mapRGBA)(lTexture_s*, Uint8 r, Uint8 g, Uint8 b, Uint8 a);
+    void (*copyRawPixels32)(lTexture_s*, void* pixels);
+    bool (*lockTexture)(lTexture_s*);
+    bool (*unlockTexture)(lTexture_s*);
+
     //surface pixels
     SDL_Surface* mSurfacePixels;
+
+    //Raw pixels
+    void* mRawPixels;
+    int mRawPitch;
 };
 
 struct Lwindow
