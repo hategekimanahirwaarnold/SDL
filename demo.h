@@ -92,6 +92,7 @@ typedef struct Circle Circle_s;
 typedef struct Lwindow lWindow;
 typedef struct Particle_s Particle;
 typedef struct Tile_s Tile;
+typedef struct LBitmapFont_s LBitmapFont;
 
 struct Circle
 {
@@ -243,6 +244,7 @@ struct CL_Instance
     lTexture_s* gSceneTexture;
     int gTotalDisplays;
     SDL_Rect* gDisplayBounds;
+    LBitmapFont* gBitmapFont;
 };
 
 struct Tile_s
@@ -252,13 +254,14 @@ struct Tile_s
     int mType;
 };
 
-// global variables
-SDL_Color gTextColor =  { 0, 0, 0, 0xFF };
-//Recording data buffer
-Uint8* gRecordingBuffer = NULL;
-//Position in data buffer
-Uint32 gBufferBytePosition = 0;
-// Definition of lTexture_s
+struct LBitmapFont_s
+{
+    bool (*buildFont)(LBitmapFont*, CL_Instance*, char *path);
+    void (*renderText)(LBitmapFont*, CL_Instance*, int x, int y, char* text);
+    lTexture_s* mFontTexture;
+    SDL_Rect mChars[ 256 ];
+    int mNewLine, mSpace;
+};
 
 struct lTexture
 {
@@ -280,8 +283,9 @@ struct lTexture
     int mHeight;
 
     //Pixel accessors
-    Uint32* (*getPixels32) ();
-    Uint32 (*getPitch32)();
+    Uint32 (*getPixel32) (lTexture_s* , Uint32 , Uint32 );
+    Uint32* (*getPixels32) (lTexture_s* );
+    Uint32 (*getPitch32)(lTexture_s*);
     Uint32 (*mapRGBA)(lTexture_s*, Uint8 r, Uint8 g, Uint8 b, Uint8 a);
     //surface pixels
     SDL_Surface* mSurfacePixels;
@@ -351,11 +355,19 @@ typedef struct SDL_Instance
     SDL_Surface* gStretchedSurface;
 } SDL_Instance;
 
+// global variables
+SDL_Color gTextColor =  { 0, 0, 0, 0xFF };
+//Recording data buffer
+Uint8* gRecordingBuffer = NULL;
+//Position in data buffer
+Uint32 gBufferBytePosition = 0;
+// Definition of lTexture_s
+
 int init_instance(SDL_Instance *);
 void draw_stuff(SDL_Instance* );
 int poll_events();
 // bool loadMedia(SDL_Instance *);
-bool loadMedia(CL_Instance *);
+// bool loadMedia(CL_Instance *);
 bool loadMedia_Texture(SDL_Instance *);
 bool loadMedia_Color(CL_Instance *);
 bool loadMedia_Sprite(CL_Instance *);
