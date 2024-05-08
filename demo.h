@@ -222,6 +222,7 @@ struct CL_Instance
     lTexture_s* gBGTexture; 
     lTexture_s* gInputTextTexture; 
     lTexture_s* gStreamingTexture;
+    lTexture_s* gTargetTexture;
     DataStream* gDataStream; 
     //tile texture
     lTexture_s* gTileTexture; 
@@ -302,7 +303,7 @@ struct lTexture
     int mHeight;
 
     // set self as render target
-    void (*setAsRenderTarget)(lTexture_s* );
+    void (*setAsRenderTarget)(lTexture_s*, CL_Instance* );
 
     //Pixel accessors
     Uint32 (*getPixel32) (lTexture_s*, Uint32 , Uint32 );
