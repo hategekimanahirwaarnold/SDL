@@ -5,6 +5,7 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_thread.h>
+#include <SDL2/SDL_opengl.h>
 #include <string.h>
 #include <stdlib.h>
 #include <SDL2/SDL_ttf.h>
